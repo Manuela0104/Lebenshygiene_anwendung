@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "631348234096",
+    "project_id": "lebenshygiene-anwendung",
+    "storage_bucket": "lebenshygiene-anwendung.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:631348234096:android:2c016be033a68875feb1b5",
+        "android_client_info": {
+          "package_name": "com.example.lebenshygiene_anwendung"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmvoa0uqf0vk2HKHZsig1UHyOaYkzhBcs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
