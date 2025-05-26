@@ -8,6 +8,7 @@ import 'fragebogen.dart';
 import 'water_counter_screen.dart';
 import 'sleep_counter_screen.dart';
 import 'calorie_counter_screen.dart';
+import 'habit_tracker_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -43,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     if (doc.exists) {
       final data = doc.data()!;
+      if (!mounted) return;
       setState(() {
         _kcalGoal = (data['zielKcal'] ?? 2000) is int ? data['zielKcal'] : int.tryParse(data['zielKcal'].toString()) ?? 2000;
         _sleepGoal = (data['zielSleep'] ?? 8.0) is double ? data['zielSleep'] : double.tryParse(data['zielSleep'].toString()) ?? 8.0;
@@ -64,6 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .get();
     if (doc.exists) {
       final data = doc.data()!;
+      if (!mounted) return;
       setState(() {
         _steps = (data['steps'] ?? 0) as int;
         _water = (data['water'] ?? 0.0).toDouble();
@@ -77,6 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
           final userData = userDoc.data()!;
+          if (!mounted) return;
           setState(() {
             _weight = (userData['weight'] ?? 66.0).toDouble();
           });
@@ -87,12 +91,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
           final userData = userDoc.data()!;
+          if (!mounted) return;
           setState(() {
             _height = (userData['height'] ?? 170.0).toDouble();
           });
         }
       }
     } else {
+      if (!mounted) return;
       setState(() {
         _steps = 0;
         _water = 0.0;
@@ -103,6 +109,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (userDoc.exists) {
         final userData = userDoc.data()!;
+        if (!mounted) return;
         setState(() {
           _height = (userData['height'] ?? 170.0).toDouble();
           _weight = (userData['weight'] ?? 66.0).toDouble();
@@ -147,6 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     }
 
+    if (!mounted) return;
     setState(() {
       _weightRecommendation = recommendation;
     });
@@ -268,35 +276,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Column(
                 children: [
-                  _buildCategoryTile(Icons.restaurant, 'Ernährung', Colors.green, () {
+                  _buildCategoryTile(Icons.check_circle, 'Habit Tracker', Colors.amber, () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => QuestionnaireScreen(category: 'Ernährung'),
+                        builder: (context) => const HabitTrackerScreen(),
                       ),
                     );
                   }),
-                  _buildCategoryTile(Icons.fitness_center, 'Training', Colors.blue, () {
+                  _buildCategoryTile(Icons.star, 'Mini-Herausforderungen', Colors.blueAccent, () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => QuestionnaireScreen(category: 'Training'),
+                        builder: (context) => const HabitTrackerScreen(),
                       ),
                     );
                   }),
-                  _buildCategoryTile(Icons.spa, 'Körperliche Hygiene', Colors.teal, () {
+                  _buildCategoryTile(Icons.show_chart, 'Trends & Berichte', Colors.greenAccent, () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => QuestionnaireScreen(category: 'Körperliche Hygiene'),
+                        builder: (context) => const HabitTrackerScreen(),
                       ),
                     );
                   }),
-                  _buildCategoryTile(Icons.psychology, 'Mentale Hygiene', Colors.purple, () {
+                  _buildCategoryTile(Icons.notifications_active, 'Intelligente Erinnerungen', Colors.orangeAccent, () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => QuestionnaireScreen(category: 'Mentale Hygiene'),
+                        builder: (context) => const HabitTrackerScreen(),
+                      ),
+                    );
+                  }),
+                  _buildCategoryTile(Icons.sentiment_satisfied_alt, 'Stimmungs-Tracker', Colors.purpleAccent, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HabitTrackerScreen(),
+                      ),
+                    );
+                  }),
+                  _buildCategoryTile(Icons.assistant, 'Virtueller Coach', Colors.tealAccent, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HabitTrackerScreen(),
                       ),
                     );
                   }),
