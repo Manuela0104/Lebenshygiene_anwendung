@@ -6,7 +6,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:lebenshygiene_anwendung/screens/challenge_detail_screen.dart';
 
 class HabitTrackerScreen extends StatefulWidget {
-  const HabitTrackerScreen({super.key});
+  final int? initialTabIndex;
+  const HabitTrackerScreen({super.key, this.initialTabIndex});
 
   @override
   State<HabitTrackerScreen> createState() => _HabitTrackerScreenState();
@@ -22,93 +23,99 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
   late TabController _tabController;
   Map<String, double> _categoryCompletionRates = {};
   List<Map<String, dynamic>> _topHabits = [];
-  Map<String, List<bool>> _weeklyProgress = {};
   Map<String, List<double>> _monthlyProgress = {};
   List<Map<String, dynamic>> _dailyStats = [];
   List<Map<String, dynamic>> _dailyStepsData = [];
-  Map<String, double> _categoryGoals = {};
-  double _userWeight = 0.0;
-  double _averageWeeklySleep = 0.0;
+  List<Map<String, dynamic>> _dailyMoodData = [];
+  List<Map<String, dynamic>> _dailyWeightData = [];
+  List<Map<String, dynamic>> _dailySleepData = [];
+  double _currentMoodLevel = 3.0;
+  final TextEditingController _moodCommentController = TextEditingController();
+  String? _currentMoodId;
   String _selectedPeriod = 'Woche';
   final List<String> _periods = ['Woche', 'Monat', 'Jahr'];
+  double _averageSleep = 0.0;
+  double _overallCompletionRate = 0.0;
+  Map<String, List<bool>> _weeklyProgress = {};
+
+  final Map<String, List<String>> _challengeHabits = {
+    'Routine digitale Detox (7 Tage)': [
+      'Bildschirmzeit vor dem Schlafengehen begrenzen',
+      'Von sozialen Medien abmelden',
+      'Telefon nachts in den Flugmodus schalten',
+      'Netzwerke während der Mahlzeiten deaktivieren',
+      'Unnötige Apps löschen', // Diese Gewohnheit ist eher einmalig, bei Bedarf anpassen
+    ],
+    'Morgenroutine (14 Tage)': [
+      'Jeden Tag zur gleichen Zeit ins Bett gehen',
+      '7-9 Stunden schlafen', // Oder ein Schlafziel
+      '1 Stunde vor dem Schlafengehen Bildschirme vermeiden',
+      'Gesundes Frühstück essen', // Essgewohnheit
+      '15 Minuten Sport / Yoga / Stretching machen', // Körperliche Aktivität
+    ],
+    'Tiefschlaf-Routine (30 Tage)': [
+      '7-9 Stunden schlafen', // Schlaf-Tracking
+      'Jeden Tag zur gleichen Zeit ins Bett gehen',
+      '1 Stunde vor dem Schlafengehen Bildschirme vermeiden',
+      'Einen Kräutertee trinken oder ein Ritual machen', // Kann bei Meditation/Entspannung helfen
+      'Ein luftiges und aufgeräumtes Zimmer halten',
+    ],
+    '10k Schritte Challenge (7 Tage)': [
+      '10.000 Schritte gehen', // Schritte verfolgen
+      'Treppe statt Aufzug nehmen', // Aktivität steigern
+      'Nach dem Mittagessen spazieren gehen', // Aktivität steigern
+    ],
+    'Trink-Challenge (14 Tage)': [
+      '2 Liter Wasser trinken', // Wasser-Tracking
+      'Einen Kräutertee trinken oder ein Ritual machen', // Flüssigkeitszufuhr fördern
+    ],
+    'Meditations-Challenge (30 Tage)': [
+      '10 Minuten meditieren', // Meditations-Tracking
+      'Beruhigende Musik hören', // Kann bei Meditation/Entspannung helfen
+    ]
+  };
 
   final Map<String, List<Map<String, dynamic>>> _defaultHabits = {
-    'Körperhygiene': [
-      {'name': 'Zähne 2x täglich putzen', 'icon': Icons.brush},
-      {'name': 'Täglich duschen', 'icon': Icons.shower},
-      {'name': 'Gesichtspflege / Pflegeroutine', 'icon': Icons.face},
-      {'name': 'Saubere Kleidung anziehen', 'icon': Icons.checkroom},
-      {'name': 'Nägel schneiden / Epilieren', 'icon': Icons.content_cut},
-      {'name': 'Haare waschen (1-2x pro Woche)', 'icon': Icons.water_drop},
-      {'name': 'Wäsche waschen / Bettwäsche wechseln', 'icon': Icons.local_laundry_service},
+    'Mini-Herausforderungen': [
+      {'name': 'Routine digitale Detox (7 Tage)', 'icon': Icons.phone_android},
+      {'name': 'Morgenroutine (14 Tage)', 'icon': Icons.wb_sunny},
+      {'name': 'Tiefschlaf-Routine (30 Tage)', 'icon': Icons.bedtime},
+      {'name': '10k Schritte Challenge (7 Tage)', 'icon': Icons.directions_walk},
+      {'name': 'Trink-Challenge (14 Tage)', 'icon': Icons.water_drop},
+      {'name': 'Meditations-Challenge (30 Tage)', 'icon': Icons.self_improvement},
     ],
-    'Ernährung und Flüssigkeitszufuhr': [
-      {'name': '2 L Wasser trinken', 'icon': Icons.water},
-      {'name': '5 Portionen Obst und Gemüse', 'icon': Icons.restaurant},
-      {'name': 'Gesundes Frühstück', 'icon': Icons.breakfast_dining},
-      {'name': 'Zucker und verarbeitete Lebensmittel vermeiden', 'icon': Icons.no_food},
-      {'name': 'Keine Snacks zwischen den Mahlzeiten', 'icon': Icons.timer},
-      {'name': 'Bewusst essen ohne Bildschirm', 'icon': Icons.no_meals},
-      {'name': 'Nahrungsergänzungsmittel einnehmen', 'icon': Icons.medication},
+    'Intelligente Erinnerungen': [
+      {'name': 'Hydration', 'icon': Icons.water_drop},
+      {'name': 'Aktive Pause', 'icon': Icons.directions_walk},
+      {'name': 'Abendroutine', 'icon': Icons.nightlight},
+      {'name': 'Entkopplung', 'icon': Icons.mobile_off},
+      {'name': 'Meditation', 'icon': Icons.self_improvement},
+      {'name': 'Schlaf', 'icon': Icons.bedtime},
     ],
-    'Körperliche Aktivität': [
-      {'name': '10.000 Schritte gehen', 'icon': Icons.directions_walk},
-      {'name': 'Treppe statt Aufzug', 'icon': Icons.stairs},
-      {'name': '15 Minuten Sport / Yoga / Stretching', 'icon': Icons.fitness_center},
-      {'name': 'Nachmittagsspaziergang', 'icon': Icons.directions_run},
-      {'name': 'Trainingsprogramm absolvieren', 'icon': Icons.sports_gymnastics},
-      {'name': 'Aktive Pausen einlegen', 'icon': Icons.timer},
+    'Mood Tracker': [
+      {'name': 'Humeur des Tages', 'icon': Icons.mood},
+      {'name': 'Energielevel', 'icon': Icons.bolt},
+      {'name': 'Schlafqualität', 'icon': Icons.bedtime},
+      {'name': 'Stresslevel', 'icon': Icons.psychology},
+      {'name': 'Produktivität', 'icon': Icons.work},
+      {'name': 'Persönliche Notizen', 'icon': Icons.edit_note},
     ],
-    'Mentale Hygiene & Wohlbefinden': [
-      {'name': '10 Minuten meditieren', 'icon': Icons.self_improvement},
-      {'name': 'Tagebuch führen', 'icon': Icons.edit_note},
-      {'name': 'Ein Kapitel lesen', 'icon': Icons.menu_book},
-      {'name': 'Kreative Aktivität', 'icon': Icons.palette},
-      {'name': 'Social Media Pause', 'icon': Icons.no_accounts},
-      {'name': 'Bildschirmzeit vor dem Schlafen reduzieren', 'icon': Icons.nightlight},
-      {'name': 'Beruhigende Musik hören', 'icon': Icons.music_note},
-      {'name': 'Zeit draußen / in der Sonne verbringen', 'icon': Icons.wb_sunny},
-    ],
-    'Schlaf': [
-      {'name': '7-9 Stunden schlafen', 'icon': Icons.bedtime},
-      {'name': 'Regelmäßige Schlafenszeit', 'icon': Icons.access_time},
-      {'name': '1 Stunde vor dem Schlafen keine Bildschirme', 'icon': Icons.no_photography},
-      {'name': 'Tee trinken / Entspannungsritual', 'icon': Icons.local_cafe},
-      {'name': 'Schlafzimmer lüften und aufräumen', 'icon': Icons.cleaning_services},
-    ],
-    'Tagesablauf & Organisation': [
-      {'name': 'Morgens To-Do-Liste erstellen', 'icon': Icons.checklist},
-      {'name': 'Mahlzeiten planen', 'icon': Icons.restaurant_menu},
-      {'name': '10 Minuten aufräumen', 'icon': Icons.cleaning_services},
-      {'name': 'Budget führen / Ausgaben notieren', 'icon': Icons.account_balance_wallet},
-      {'name': 'Wichtige E-Mails beantworten', 'icon': Icons.mail},
-    ],
-    'Soziale Beziehungen': [
-      {'name': 'Kontakt zu Freunden/Familie', 'icon': Icons.people},
-      {'name': 'Danke sagen / Komplimente machen', 'icon': Icons.favorite},
-      {'name': 'Nicht den ganzen Tag isolieren', 'icon': Icons.group},
-      {'name': 'An Gruppenaktivitäten teilnehmen', 'icon': Icons.event},
-    ],
-    'Digitale Hygiene': [
-      {'name': 'Benachrichtigungen einschränken', 'icon': Icons.notifications_off},
-      {'name': 'Nachts Flugmodus aktivieren', 'icon': Icons.airplanemode_active},
-      {'name': 'Unnötige Apps löschen', 'icon': Icons.delete},
-      {'name': 'Social Media während der Mahlzeiten deaktivieren', 'icon': Icons.no_meals},
-    ],
+    // 'Coach Virtuel' : Cette catégorie a été supprimée du tableau de bord et n'est pas utilisée ici.
   };
 
   @override
   void initState() {
     super.initState();
     _user = _auth.currentUser;
-    _tabController = TabController(length: _defaultHabits.length + 1, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     if (_user != null) {
       _loadHabits();
       _loadDailyCompletionStatus();
       _loadStatistics();
-      _loadDailyStatsForPeriod();
-      _loadCategoryGoals();
-      _loadUserData();
+      _loadDailyMood();
+    }
+    if (widget.initialTabIndex != null && widget.initialTabIndex! < _tabController.length) {
+      _tabController.animateTo(widget.initialTabIndex!);
     }
   }
 
@@ -116,6 +123,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
   void dispose() {
     _newHabitController.dispose();
     _tabController.dispose();
+    _moodCommentController.dispose();
     super.dispose();
   }
 
@@ -147,52 +155,54 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
     }
   }
 
-  Future<void> _loadDailyCompletionStatus() async {
+  Future<void> _loadStatistics() async {
     if (_user == null) return;
-    try {
-      final today = _getCurrentDate();
+    
+    // Charger les données de la semaine pour l'affichage hebdomadaire
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    
+    Map<String, List<bool>> weeklyData = {};
+    
+    for (int i = 0; i < 7; i++) {
+      final date = weekStart.add(Duration(days: i));
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      
       final statusSnapshot = await _firestore
           .collection('users')
           .doc(_user!.uid)
           .collection('daily_status')
-          .doc(today)
+          .doc(dateStr)
           .get();
-
+      
       if (statusSnapshot.exists) {
-        setState(() {
-          _dailyCompletionStatus = Map<String, bool>.from(statusSnapshot.data() ?? {});
+        final data = statusSnapshot.data() as Map<String, dynamic>;
+        
+        data.forEach((habitName, isCompleted) {
+          // Conserver la logique pour les habitudes affichées ici
+          if (isCompleted == true) {
+            // Calculs si nécessaire pour l'affichage hebdomadaire
+          }
+          
+          if (!weeklyData.containsKey(habitName)) {
+            weeklyData[habitName] = List.filled(7, false);
+          }
+          weeklyData[habitName]![i] = isCompleted == true;
         });
       }
-    } catch (e) {
-      debugPrint('Error loading daily status: $e');
     }
-  }
-
-  Future<void> _updateCompletionStatus(String habitName, bool isCompleted) async {
-    if (_user == null) return;
-    try {
-      final today = _getCurrentDate();
-      await _firestore
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('daily_status')
-          .doc(today)
-          .set({
-        habitName: isCompleted,
-      }, SetOptions(merge: true));
-
-      setState(() {
-        _dailyCompletionStatus[habitName] = isCompleted;
-      });
-      await _loadStatistics();
-      await _saveDailyStats();
-    } catch (e) {
-      debugPrint('Error updating completion status: $e');
-    }
+    
+    setState(() {
+      _weeklyProgress = weeklyData;
+    });
   }
 
   Future<void> _addNewHabitDialog() async {
-    String selectedCategory = _defaultHabits.keys.first;
+    String selectedCategory = _defaultHabits.keys
+        .where((category) =>
+            category != 'Mini-Herausforderungen' &&
+            category != 'Tendances & Rapports') // Exclure les catégories qui ne sont pas pour les habitudes régulières
+        .first;
     return showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -210,7 +220,11 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: selectedCategory,
-                items: _defaultHabits.keys.map((category) {
+                items: _defaultHabits.keys
+                    .where((category) =>
+                        category != 'Mini-Herausforderungen' &&
+                        category != 'Tendances & Rapports') // Filtrer pour n'afficher que les catégories d'habitudes
+                    .map((category) {
                   return DropdownMenuItem(
                     value: category,
                     child: Text(category),
@@ -268,345 +282,52 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
     }
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _addHabitsFromChallenge(List<String> habitNames) async {
     if (_user == null) return;
+    final batch = _firestore.batch();
+
+    // Existierende Gewohnheiten laden, um Duplikate zu vermeiden
+    final existingHabitsSnapshot = await _firestore
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('habits')
+        .get();
+
+    final existingHabitNames = existingHabitsSnapshot.docs
+        .map((doc) => doc.data()['name'] as String)
+        .toSet(); // Ein Set für schnelle Suche verwenden
+
+    for (final habitName in habitNames) {
+      if (!existingHabitNames.contains(habitName)) {
+        final newHabitRef = _firestore.collection('users').doc(_user!.uid).collection('habits').doc();
+        batch.set(newHabitRef, {
+          'name': habitName,
+          'category': 'Challenges', // Standardkategorie für Challenge-Gewohnheiten
+          'createdAt': FieldValue.serverTimestamp(),
+          // TODO: Falls nötig, spezifische Challenge-Felder hinzufügen (z.B. challengeName, endDate)
+        });
+      }
+    }
+
     try {
-      final userDoc = await _firestore.collection('users').doc(_user!.uid).get();
-      if (userDoc.exists) {
-        final userData = userDoc.data()!;
-        if (mounted) {
-          setState(() {
-            _userWeight = (userData['weight'] ?? 0.0).toDouble();
-          });
-        }
-      }
+      await batch.commit();
+      debugPrint('Gewohnheiten aus Challenge hinzugefügt.');
+      await _loadHabits(); // Gewohnheitenliste nach dem Hinzufügen neu laden
     } catch (e) {
-      debugPrint('Error loading user data: $e');
+      debugPrint('Error adding habits from challenge: $e');
     }
-  }
-
-  Future<void> _loadStatistics() async {
-    if (_user == null) return;
-    
-    // Charger les données de la semaine
-    final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    
-    Map<String, List<bool>> weeklyData = {};
-    Map<String, int> habitCompletions = {};
-    Map<String, int> categoryCompletions = {};
-    Map<String, int> categoryTotal = {};
-    List<double> weeklySleepData = [];
-    
-    for (int i = 0; i < 7; i++) {
-      final date = weekStart.add(Duration(days: i));
-      final dateStr = DateFormat('yyyy-MM-dd').format(date);
-      
-      final statusSnapshot = await _firestore
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('daily_status')
-          .doc(dateStr)
-          .get();
-      
-      final dailyDataSnapshot = await _firestore
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('dailyData')
-          .doc(dateStr)
-          .get();
-      
-      if (dailyDataSnapshot.exists) {
-        final data = dailyDataSnapshot.data() as Map<String, dynamic>;
-        weeklySleepData.add((data['sleep'] ?? 0.0).toDouble());
-      }
-      
-      if (statusSnapshot.exists) {
-        final data = statusSnapshot.data() as Map<String, dynamic>;
-        
-        data.forEach((habitName, isCompleted) {
-          if (isCompleted == true) {
-            habitCompletions[habitName] = (habitCompletions[habitName] ?? 0) + 1;
-            
-            // Trouver la catégorie de l'habitude
-            for (var category in _defaultHabits.entries) {
-              if (category.value.any((habit) => habit['name'] == habitName)) {
-                categoryCompletions[category.key] = (categoryCompletions[category.key] ?? 0) + 1;
-                categoryTotal[category.key] = (categoryTotal[category.key] ?? 0) + 1;
-              }
-            }
-          }
-          
-          if (!weeklyData.containsKey(habitName)) {
-            weeklyData[habitName] = List.filled(7, false);
-          }
-          weeklyData[habitName]![i] = isCompleted == true;
-        });
-      }
-    }
-    
-    // Calculer les taux de complétion par catégorie
-    Map<String, double> completionRates = {};
-    categoryCompletions.forEach((category, completions) {
-      completionRates[category] = completions / (categoryTotal[category] ?? 1);
-    });
-    
-    // Trier les habitudes par taux de complétion
-    List<Map<String, dynamic>> topHabits = habitCompletions.entries
-        .map((e) => {
-          'name': e.key,
-          'completionRate': e.value / 7,
-        })
-        .toList()
-      ..sort((a, b) => (b['completionRate'] as double).compareTo(a['completionRate'] as double));
-    
-    // Durchschnittlichen Schlaf berechnen
-    double totalSleep = weeklySleepData.fold(0, (sum, item) => sum + item);
-    double averageSleep = weeklySleepData.isNotEmpty ? totalSleep / weeklySleepData.length : 0.0;
-    
-    setState(() {
-      _categoryCompletionRates = completionRates;
-      _topHabits = topHabits.take(5).toList();
-      _weeklyProgress = weeklyData;
-      _averageWeeklySleep = averageSleep;
-    });
-  }
-
-  Future<void> _saveDailyStats() async {
-    if (_user == null) return;
-    
-    final today = _getCurrentDate();
-    final stats = {
-      'date': today,
-      'timestamp': FieldValue.serverTimestamp(),
-      'categoryStats': _categoryCompletionRates,
-      'totalCompletionRate': _calculateTotalCompletionRate(),
-    };
-    
-    await _firestore
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('daily_stats')
-        .doc(today)
-        .set(stats);
-  }
-
-  double _calculateTotalCompletionRate() {
-    if (_categoryCompletionRates.isEmpty) return 0.0;
-    double sum = _categoryCompletionRates.values.reduce((a, b) => a + b);
-    return sum / _categoryCompletionRates.length;
-  }
-
-  Future<void> _loadDailyStatsForPeriod() async {
-    if (_user == null) return;
-    
-    final now = DateTime.now();
-    DateTime startDate;
-    DateTime endDate = now;
-
-    switch (_selectedPeriod) {
-      case 'Woche':
-        startDate = now.subtract(Duration(days: now.weekday - 1));
-        break;
-      case 'Monat':
-        startDate = DateTime(now.year, now.month, 1);
-        break;
-      case 'Jahr':
-        startDate = DateTime(now.year, 1, 1);
-        break;
-      default:
-        startDate = now.subtract(const Duration(days: 6)); // Par défaut, la semaine
-    }
-    
-    final statsSnapshot = await _firestore
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('daily_stats')
-        .where('date', isGreaterThanOrEqualTo: DateFormat('yyyy-MM-dd').format(startDate))
-        .where('date', isLessThanOrEqualTo: DateFormat('yyyy-MM-dd').format(endDate))
-        .get();
-    
-    Map<String, List<double>> monthlyData = {};
-    List<Map<String, dynamic>> dailyStats = [];
-    List<Map<String, dynamic>> dailyStepsData = [];
-    
-    for (var doc in statsSnapshot.docs) {
-      final data = doc.data();
-      if (data == null) continue;
-      
-      final categoryStatsData = data['categoryStats'];
-      if (categoryStatsData == null || !(categoryStatsData is Map)) continue;
-      
-      final categoryStats = Map<String, double>.from(categoryStatsData as Map);
-      
-      categoryStats.forEach((category, rate) {
-        if (!monthlyData.containsKey(category)) {
-          monthlyData[category] = [];
-        }
-        monthlyData[category]!.add(rate);
-      });
-      
-      final totalRate = data['totalCompletionRate'];
-      if (totalRate == null) continue;
-      
-      final date = data['date'] as String?;
-      if (date != null && date.isNotEmpty) {
-        dailyStats.add({
-          'date': date,
-          'totalRate': totalRate is double ? totalRate : double.tryParse(totalRate.toString()) ?? 0.0,
-        });
-      }
-    }
-    
-    // Filtrer les entrées sans date valide avant de charger les données quotidiennes
-    final validDates = dailyStats.map((e) => e['date']).whereType<String>().toList();
-
-    if (validDates.isNotEmpty) {
-      final dailyDataSnapshot = await _firestore
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('dailyData')
-          .where(FieldPath.documentId, whereIn: validDates) // Utiliser les IDs de document (les dates)
-          .get();
-      
-      for (var doc in dailyDataSnapshot.docs) {
-        final data = doc.data();
-        if (data == null) continue;
-
-        // Utiliser l'ID du document (la date) comme champ de date
-        final date = doc.id;
-        if (date.isNotEmpty) {
-          dailyStepsData.add({
-            'date': date,
-            'steps': (data['steps'] ?? 0) as int,
-          });
-        }
-      }
-    }
-    
-    // Trier les données de pas par date
-    dailyStepsData.sort((a, b) {
-      final dateA = DateFormat('yyyy-MM-dd').parse(a['date']);
-      final dateB = DateFormat('yyyy-MM-dd').parse(b['date']);
-      return dateA.compareTo(dateB);
-    });
-    
-    dailyStats.sort((a, b) {
-      final dateA = DateFormat('yyyy-MM-dd').parse(a['date']);
-      final dateB = DateFormat('yyyy-MM-dd').parse(b['date']);
-      return dateA.compareTo(dateB);
-    });
-    
-    setState(() {
-      _monthlyProgress = monthlyData;
-      _dailyStats = dailyStats;
-      _dailyStepsData = dailyStepsData;
-    });
-  }
-
-  Future<void> _loadCategoryGoals() async {
-    if (_user == null) return;
-    
-    final goalsDoc = await _firestore
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('settings')
-        .doc('category_goals')
-        .get();
-    
-    if (goalsDoc.exists) {
-      setState(() {
-        _categoryGoals = Map<String, double>.from(goalsDoc.data() ?? {});
-      });
-    } else {
-      // Initialiser les objectifs par défaut
-      Map<String, double> defaultGoals = {};
-      for (var category in _defaultHabits.keys) {
-        defaultGoals[category] = 0.7; // 70% par défaut
-      }
-      await _firestore
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('settings')
-          .doc('category_goals')
-          .set(defaultGoals);
-      
-      setState(() {
-        _categoryGoals = defaultGoals;
-      });
-    }
-  }
-
-  Future<void> _updateCategoryGoal(String category, double goal) async {
-    if (_user == null) return;
-    
-    await _firestore
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('settings')
-        .doc('category_goals')
-        .set({
-      category: goal,
-    }, SetOptions(merge: true));
-    
-    setState(() {
-      _categoryGoals[category] = goal;
-    });
-  }
-
-  Future<void> _showGoalSettingDialog(String category) async {
-    final controller = TextEditingController(
-      text: ((_categoryGoals[category] ?? 0.7) * 100).toStringAsFixed(0),
-    );
-    
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Ziel für $category'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Ziel in Prozent',
-                suffixText: '%',
-              ),
-            ),
-            const SizedBox(height: 16),
-            Slider(
-              value: double.tryParse(controller.text) ?? 70,
-              min: 0,
-              max: 100,
-              divisions: 20,
-              label: '${(double.tryParse(controller.text) ?? 70).round()}%',
-              onChanged: (value) {
-                controller.text = value.round().toString();
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Abbrechen'),
-          ),
-          TextButton(
-            onPressed: () {
-              final goal = double.tryParse(controller.text) ?? 70;
-              _updateCategoryGoal(category, goal / 100);
-              Navigator.pop(context);
-            },
-            child: const Text('Speichern'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Filter the categories that SHOULD appear in HabitTrackerScreen
+    final List<String> habitTrackerCategories = _defaultHabits.keys
+        .where((category) =>
+            category != 'Mini-Herausforderungen' &&
+            category != 'Tendances & Rapports' &&
+            category != 'Mood Tracker')
+        .toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gewohnheiten-Tracker'),
@@ -614,8 +335,10 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
           controller: _tabController,
           isScrollable: true,
           tabs: [
-            ..._defaultHabits.keys.map((category) => Tab(text: category)),
-            const Tab(text: 'Statistiken'),
+            // Tabs for the remaining habit categories
+            ...habitTrackerCategories.map((category) => Tab(text: category)),
+            const Tab(text: 'Stimmungs-Tracker'), // Mood Tracker tab
+            const Tab(text: 'Wöchentlicher Fortschritt'), // Weekly Progress tab
           ],
         ),
       ),
@@ -626,385 +349,123 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
           : TabBarView(
               controller: _tabController,
               children: [
-                ..._defaultHabits.entries.map((categoryEntry) {
-                  final categoryName = categoryEntry.key;
-                  final habits = categoryEntry.value;
-
-                  // Pour la catégorie "Mini-Herausforderungen", afficher les challenges
-                  if (categoryName == 'Mini-Herausforderungen') {
-                    return ListView.builder(
-                      itemCount: habits.length,
-                      itemBuilder: (context, index) {
-                        final challenge = habits[index];
-                        return ListTile(
-                          leading: Icon(challenge['icon'] as IconData),
-                          title: Text(challenge['name']),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16.0),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChallengeDetailScreen(challenge: challenge),
-                              ),
-                            );
+                // Views for the remaining habit categories
+                ...habitTrackerCategories.map((categoryName) {
+                  final habits = _defaultHabits[categoryName] ?? [];
+                  return ListView.builder(
+                    itemCount: habits.length,
+                    itemBuilder: (context, index) {
+                      final habit = habits[index];
+                      return ListTile(
+                        leading: Icon(habit['icon'] as IconData),
+                        title: Text(habit['name']),
+                        trailing: Checkbox(
+                          value: _dailyCompletionStatus[habit['name']] ?? false,
+                          onChanged: (bool? newValue) {
+                            if (newValue != null) {
+                              _updateCompletionStatus(habit['name'], newValue);
+                            }
                           },
-                        );
-                      },
-                    );
-                  } else {
-                    // Pour les autres catégories, afficher les habitudes avec checkbox
-                    return ListView.builder(
-                      itemCount: habits.length,
-                      itemBuilder: (context, index) {
-                        final habit = habits[index];
-                        return ListTile(
-                          leading: Icon(habit['icon'] as IconData),
-                          title: Text(habit['name']),
-                          trailing: Checkbox(
-                            value: _dailyCompletionStatus[habit['name']] ?? false,
-                            onChanged: (bool? newValue) {
-                              if (newValue != null) {
-                                _updateCompletionStatus(habit['name'], newValue);
-                              }
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  }
+                        ),
+                      );
+                    },
+                  );
                 }).toList(),
+                // Mood Tracker Tab content
                 SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Zeitraum',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          DropdownButton<String>(
-                            value: _selectedPeriod,
-                            items: _periods.map((period) {
-                              return DropdownMenuItem(
-                                value: period,
-                                child: Text(period),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedPeriod = value;
-                                });
-                                _loadDailyStatsForPeriod();
-                                _loadStatistics();
-                                _loadUserData();
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
                       const Text(
-                        'Kategorie-Übersicht',
+                        'Wie fühlen Sie sich heute?',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 16),
-                      ..._categoryCompletionRates.entries.map((entry) {
-                        final goal = _categoryGoals[entry.key] ?? 0.7;
-                        final isGoalAchieved = entry.value >= goal;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(entry.key),
-                                  IconButton(
-                                    icon: const Icon(Icons.settings),
-                                    onPressed: () => _showGoalSettingDialog(entry.key),
-                                  ),
-                                ],
-                              ),
-                              LinearProgressIndicator(
-                                value: entry.value,
-                                backgroundColor: Colors.grey[200],
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  isGoalAchieved ? Colors.green :
-                                  entry.value > goal * 0.7 ? Colors.orange :
-                                  Colors.red,
-                                ),
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('${(entry.value * 100).toStringAsFixed(1)}%'),
-                                  Text(
-                                    'Ziel: ${(goal * 100).toStringAsFixed(0)}%',
-                                    style: TextStyle(
-                                      color: isGoalAchieved ? Colors.green : Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
                       const SizedBox(height: 24),
-                      const Text(
-                        'Gewicht',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
                       Text(
-                        'Ihr aktuelles Gewicht: ${_userWeight.toStringAsFixed(1)} kg',
+                        'Stimmungsniveau: ${_currentMoodLevel.toStringAsFixed(0)}',
                         style: const TextStyle(fontSize: 16),
                       ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Durchschnittlicher Schlaf (diese Woche)',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      Slider(
+                        value: _currentMoodLevel,
+                        min: 1.0,
+                        max: 5.0,
+                        divisions: 4,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _currentMoodLevel = newValue;
+                          });
+                        },
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        '${_averageWeeklySleep.toStringAsFixed(1)} Stunden',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 24),
                       const Text(
-                        'Monatlicher Fortschritt',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        'Kommentar:',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 16),
-                      if (_dailyStats.isEmpty)
-                        const Center(
-                          child: Text('Keine Daten verfügbar'),
-                        )
-                      else
-                        SizedBox(
-                          height: 200,
-                          child: LineChart(
-                            LineChartData(
-                              gridData: FlGridData(show: true),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 40,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text('${(value * 100).toInt()}%');
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      if (value.toInt() >= _dailyStats.length) return const Text('');
-                                      final dateString = _dailyStats[value.toInt()]['date'] as String?;
-                                      if (dateString == null) return const Text('');
-                                      final date = DateFormat('yyyy-MM-dd').parse(dateString);
-                                      return Text(
-                                        _selectedPeriod == 'Woche' ? DateFormat('E').format(date) :
-                                        _selectedPeriod == 'Monat' ? DateFormat('dd.MM').format(date) :
-                                        DateFormat('MM.yy').format(date)
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border.all(color: Colors.grey),
-                              ),
-                              lineBarsData: [
-                                LineChartBarData(
-                                  spots: _dailyStats.asMap().entries.map((entry) {
-                                    return FlSpot(entry.key.toDouble(), entry.value['totalRate'] as double);
-                                  }).toList(),
-                                  isCurved: true,
-                                  color: Colors.blue,
-                                  barWidth: 3,
-                                  dotData: FlDotData(show: true),
-                                ),
-                              ],
-                            ),
-                          ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _moodCommentController,
+                        decoration: const InputDecoration(
+                          hintText: 'Optionalen Kommentar eingeben',
+                          border: OutlineInputBorder(),
                         ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Kategorie-Vergleich',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        maxLines: 3,
                       ),
-                      const SizedBox(height: 16),
-                      if (_monthlyProgress.isEmpty)
-                        const Center(
-                          child: Text('Keine Daten verfügbar'),
-                        )
-                      else
-                        SizedBox(
-                          height: 200,
-                          child: LineChart(
-                            LineChartData(
-                              gridData: FlGridData(show: true),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 40,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text('${(value * 100).toInt()}%');
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      if (value.toInt() >= _dailyStats.length) return const Text('');
-                                      final dateString = _dailyStats[value.toInt()]['date'] as String?;
-                                      if (dateString == null) return const Text('');
-                                      final date = DateFormat('yyyy-MM-dd').parse(dateString);
-                                      return Text(
-                                        _selectedPeriod == 'Woche' ? DateFormat('E').format(date) :
-                                        _selectedPeriod == 'Monat' ? DateFormat('dd.MM').format(date) :
-                                        DateFormat('MM.yy').format(date)
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border.all(color: Colors.grey),
-                              ),
-                              lineBarsData: _monthlyProgress.entries.map((entry) {
-                                return LineChartBarData(
-                                  spots: entry.value.asMap().entries.map((spot) {
-                                    return FlSpot(spot.key.toDouble(), spot.value);
-                                  }).toList(),
-                                  isCurved: true,
-                                  color: _getCategoryColor(entry.key),
-                                  barWidth: 3,
-                                  dotData: FlDotData(show: true),
-                                );
-                              }).toList(),
-                            ),
-                          ),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _saveDailyMood,
+                          child: const Text('Stimmung speichern'),
                         ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Schritt-Fortschritt',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 16),
-                      if (_dailyStepsData.isEmpty)
-                        const Center(
-                          child: Text('Keine Daten verfügbar'),
-                        )
-                      else
-                        SizedBox(
-                          height: 200,
-                          child: LineChart(
-                            LineChartData(
-                              gridData: FlGridData(show: true),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    reservedSize: 40,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(value.toInt().toString());
-                                    },
-                                  ),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      if (value.toInt() >= _dailyStepsData.length) return const Text('');
-                                      final dateString = _dailyStepsData[value.toInt()]['date'] as String?;
-                                      if (dateString == null) return const Text('');
-                                      final date = DateFormat('yyyy-MM-dd').parse(dateString);
-                                      return Text(
-                                        _selectedPeriod == 'Woche' ? DateFormat('E').format(date) :
-                                        _selectedPeriod == 'Monat' ? DateFormat('dd.MM').format(date) :
-                                        DateFormat('MM.yy').format(date)
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                              borderData: FlBorderData(
-                                show: true,
-                                border: Border.all(color: Colors.grey),
-                              ),
-                              lineBarsData: [
-                                LineChartBarData(
-                                  spots: _dailyStepsData.asMap().entries.map((entry) {
-                                    return FlSpot(entry.key.toDouble(), (entry.value['steps'] ?? 0).toDouble());
-                                  }).toList(),
-                                  isCurved: true,
-                                  color: Colors.orange,
-                                  barWidth: 3,
-                                  dotData: FlDotData(show: true),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Top 5 Gewohnheiten',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      ..._topHabits.map((habit) {
-                        return ListTile(
-                          title: Text(habit['name']),
-                          trailing: Text('${(habit['completionRate'] * 100).toStringAsFixed(1)}%'),
-                        );
-                      }),
-                      const SizedBox(height: 24),
-                      const Text(
+                    ],
+                  ),
+                ),
+                // Contenu du Weekly Progress
+                 SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                       const Text(
                         'Wöchentlicher Fortschritt',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
-                      ..._weeklyProgress.entries.map((entry) {
-                        return Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: List.generate(7, (index) {
-                                    final date = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1 - index));
-                                    return Column(
-                                      children: [
-                                        Text(DateFormat('E').format(date)),
-                                        Icon(
-                                          entry.value[index] ? Icons.check_circle : Icons.cancel,
-                                          color: entry.value[index] ? Colors.green : Colors.red,
-                                        ),
-                                      ],
-                                    );
-                                  }),
-                                ),
-                              ],
+                      if (_weeklyProgress.isEmpty)
+                        const Center(
+                          child: Text('Keine Daten verfügbar'),
+                        )
+                      else
+                        ..._weeklyProgress.entries.map((entry) {
+                          return Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: List.generate(7, (index) {
+                                      final date = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1 - index));
+                                      return Column(
+                                        children: [
+                                          Text(DateFormat('E').format(date)),
+                                          Icon(
+                                            entry.value[index] ? Icons.check_circle : Icons.cancel,
+                                            color: entry.value[index] ? Colors.green : Colors.red,
+                                          ),
+                                        ],
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }).toList(),
                     ],
                   ),
                 ),
@@ -1015,7 +476,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
           : FloatingActionButton(
               onPressed: _addNewHabitDialog,
               tooltip: 'Neue Gewohnheit hinzufügen',
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.add), // Keep the FAB for adding habits
             ),
     );
   }
@@ -1030,7 +491,114 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
       'Tagesablauf & Organisation': Colors.teal,
       'Soziale Beziehungen': Colors.pink,
       'Digitale Hygiene': Colors.amber,
+      'Challenges': Colors.red, // Ajouter une couleur pour les habitudes des challenges si elles sont affichées ici
     };
     return colors[category] ?? Colors.grey;
+  }
+
+  Future<void> _updateCompletionStatus(String habitName, bool isCompleted) async {
+    if (_user == null) return;
+    try {
+      final today = _getCurrentDate();
+      await _firestore
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('daily_status')
+          .doc(today)
+          .set({
+        habitName: isCompleted,
+      }, SetOptions(merge: true));
+
+      if (mounted) {
+        setState(() {
+          _dailyCompletionStatus[habitName] = isCompleted;
+        });
+      }
+      // Pas besoin de recharger toutes les statistiques ici, juste le statut de complétion
+      // await _loadStatistics();
+    } catch (e) {
+      debugPrint('Error updating completion status: $e');
+    }
+  }
+
+  Future<void> _saveDailyMood() async {
+    if (_user == null) return;
+    try {
+      final today = _getCurrentDate();
+      final moodData = {
+        'level': _currentMoodLevel,
+        'comment': _moodCommentController.text,
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+
+      await _firestore
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('moodEntries')
+          .doc(today)
+          .set(moodData, SetOptions(merge: true));
+
+      if (mounted) {
+        setState(() {
+          _currentMoodId = today;
+        });
+      }
+      debugPrint('Tägliche Stimmung für $today gespeichert');
+    } catch (e) {
+      debugPrint('Fehler beim Speichern der täglichen Stimmung: $e');
+    }
+  }
+
+  Future<void> _loadDailyCompletionStatus() async {
+    if (_user == null) return;
+    try {
+      final today = _getCurrentDate();
+      final statusSnapshot = await _firestore
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('daily_status')
+          .doc(today)
+          .get();
+
+      if (statusSnapshot.exists) {
+        setState(() {
+          _dailyCompletionStatus = Map<String, bool>.from(statusSnapshot.data() ?? {});
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading daily status: $e');
+    }
+  }
+
+  Future<void> _loadDailyMood() async {
+    if (_user == null) return;
+    try {
+      final today = _getCurrentDate();
+      final moodSnapshot = await _firestore
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('moodEntries')
+          .doc(today)
+          .get();
+
+      if (moodSnapshot.exists) {
+        final moodData = moodSnapshot.data() as Map<String, dynamic>;
+        if (mounted) {
+          setState(() {
+            _currentMoodLevel = (moodData['level'] as num?)?.toDouble() ?? 3.0;
+            _moodCommentController.text = (moodData['comment'] as String?) ?? '';
+            _currentMoodId = moodSnapshot.id;
+          });
+        }
+      } else if (mounted) {
+        setState(() {
+          _currentMoodLevel = 3.0;
+          _moodCommentController.text = '';
+          _currentMoodId = null;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading daily mood: $e');
+    }
   }
 } 

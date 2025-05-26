@@ -9,6 +9,11 @@ import 'water_counter_screen.dart';
 import 'sleep_counter_screen.dart';
 import 'calorie_counter_screen.dart';
 import 'habit_tracker_screen.dart';
+import 'mini_challenges_screen.dart';
+import 'package:lebenshygiene_anwendung/screens/trends_screen.dart';
+import 'package:lebenshygiene_anwendung/screens/smart_reminders_screen.dart';
+import 'package:lebenshygiene_anwendung/screens/mood_tracker_screen.dart';
+import 'package:lebenshygiene_anwendung/screens/goal_selection_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,9 +25,9 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _steps = 0;
   int _stepsGoal = 10000;
-  double _water = 1.2; // en litres
+  double _water = 1.2; // in Litern
   double _waterGoal = 2.0;
-  double _sleep = 7.0; // en heures
+  double _sleep = 7.0; // in Stunden
   double _sleepGoal = 8.0;
   int _kcal = 1200;
   int _kcalGoal = 2000;
@@ -75,7 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _weight = (data['weight'] ?? 0.0).toDouble();
         _height = (data['height'] ?? 0.0).toDouble();
       });
-      // Si le poids est absent ou nul, charger depuis le profil utilisateur
+      // Wenn Gewicht fehlt oder null ist, aus Benutzerprofil laden
       if ((data['weight'] == null || data['weight'] == 0.0)) {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
@@ -86,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           });
         }
       }
-      // Si la taille est absente ou nulle, charger depuis le profil utilisateur
+      // Wenn Größe fehlt oder null ist, aus Benutzerprofil laden
       if ((data['height'] == null || data['height'] == 0.0)) {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
@@ -105,7 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _sleep = 0.0;
         _kcal = 0;
       });
-      // Charger la taille et le poids depuis le profil utilisateur
+      // Größe und Gewicht aus Benutzerprofil laden
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (userDoc.exists) {
         final userData = userDoc.data()!;
@@ -168,6 +173,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: const Text('Dashboard'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.flag),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GoalSelectionScreen(),
+                ),
+              );
+            },
+            tooltip: 'Ziele',
+          ),
+          IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () async {
               final picked = await showDatePicker(
@@ -192,7 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Übersicht (cercle central)
+            // Übersicht (zentraler Kreis)
             Card(
               color: const Color(0xFFF3CFE2),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -200,7 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    // Cercle central : nombre de pas / objectif
+                    // Zentraler Kreis: Schritte / Ziel
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -288,15 +305,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HabitTrackerScreen(),
+                        builder: (context) => MiniChallengesScreen(),
                       ),
                     );
                   }),
-                  _buildCategoryTile(Icons.show_chart, 'Trends & Berichte', Colors.greenAccent, () {
+                  _buildCategoryTile(Icons.trending_up, 'Trends & Berichte', Colors.greenAccent, () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HabitTrackerScreen(),
+                        builder: (context) => const TrendsScreen(),
                       ),
                     );
                   }),
@@ -304,7 +321,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HabitTrackerScreen(),
+                        builder: (context) => const SmartRemindersScreen(),
                       ),
                     );
                   }),
@@ -312,15 +329,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HabitTrackerScreen(),
-                      ),
-                    );
-                  }),
-                  _buildCategoryTile(Icons.assistant, 'Virtueller Coach', Colors.tealAccent, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HabitTrackerScreen(),
+                        builder: (context) => const MoodTrackerScreen(),
                       ),
                     );
                   }),

@@ -6,8 +6,10 @@ import 'package:fl_chart/fl_chart.dart';
 
 class ChallengeDetailScreen extends StatelessWidget {
   final Map<String, dynamic> challenge;
+  final List<String> challengeHabits;
+  final Function(List<String>) onStartChallenge;
 
-  const ChallengeDetailScreen({super.key, required this.challenge});
+  const ChallengeDetailScreen({super.key, required this.challenge, required this.challengeHabits, required this.onStartChallenge});
 
   @override
   Widget build(BuildContext context) {
@@ -25,12 +27,22 @@ class ChallengeDetailScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+            const Text(
+              'Enthaltende Gewohnheiten:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: challengeHabits.map((habit) => Text('- $habit')).toList(),
+            ),
+            const SizedBox(height: 24),
             // Hier können weitere Details und die Start-Logik hinzugefügt werden
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Implementiere Logik zum Starten des Challenges
-                  debugPrint('Challenge starten: ${challenge['name']}');
+                  onStartChallenge(challengeHabits);
+                  Navigator.pop(context); // Bildschirm nach dem Start der Challenge schließen
                 },
                 child: const Text('Challenge starten'),
               ),

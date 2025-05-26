@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 40),
-                  // Logo ou nom de l'app
+                  // Logo oder Name der App
                   Column(
                     children: const [
                       Icon(Icons.favorite, color: Colors.pink, size: 48),

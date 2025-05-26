@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'reminders_screen.dart';
+import 'goal_selection_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -162,6 +163,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     const Text('Ziele', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _zielController,
+                      decoration: const InputDecoration(
+                        labelText: 'Hauptziel',
+                        prefixIcon: Icon(Icons.flag),
+                        border: OutlineInputBorder(),
+                      ),
+                      readOnly: true,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const GoalSelectionScreen(),
+                          ),
+                        ).then((_) => _loadUserData());
+                      },
+                    ),
+                    const SizedBox(height: 10),
                     TextFormField(
                       controller: _zielKcalController,
                       decoration: const InputDecoration(
@@ -409,6 +428,15 @@ class _KontoEditScreenState extends State<KontoEditScreen> {
                       prefixIcon: Icon(Icons.flag),
                       border: OutlineInputBorder(),
                     ),
+                    readOnly: true,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const GoalSelectionScreen(),
+                        ),
+                      ).then((_) => _loadUserData());
+                    },
                   ),
                   const SizedBox(height: 15),
                   InkWell(
