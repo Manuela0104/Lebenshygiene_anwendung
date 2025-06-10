@@ -9,17 +9,61 @@ class GoalSelectionScreen extends StatefulWidget {
   State<GoalSelectionScreen> createState() => _GoalSelectionScreenState();
 }
 
-class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
+class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _selectedGoal;
   bool _isLoading = false;
+  late AnimationController _animationController;
+  late AnimationController _cardController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    _cardController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+    
+    _slideAnimation = Tween<double>(
+      begin: 50.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+    
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _cardController.dispose();
+    super.dispose();
+  }
 
   final List<Map<String, dynamic>> _goals = [
     {
       'id': 'organization',
       'title': 'Bessere Organisation des Alltags',
       'icon': Icons.schedule,
+      'color': const Color(0xFF667eea),
       'description': 'Person mit viel Stress, die ihre Routine wieder unter Kontrolle bringen möchte.',
       'features': [
         'Wasser trinken, Spazieren, Zähneputzen nicht vergessen',
@@ -31,6 +75,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
       'id': 'wellbeing',
       'title': 'Psychische & körperliche Gesundheit',
       'icon': Icons.self_improvement,
+      'color': const Color(0xFF43e97b),
       'description': 'Person auf der Suche nach Wohlbefinden und ganzheitlichem Wohlsein.',
       'features': [
         'Regelmäßigerer Schlaf',
@@ -42,6 +87,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
       'id': 'hygiene',
       'title': 'Regelmäßigkeit in der Lebenshygiene',
       'icon': Icons.cleaning_services,
+      'color': const Color(0xFFfa709a),
       'description': 'Jugendliche, Studenten oder Erwachsene in schwierigen Phasen.',
       'features': [
         'Körperhygiene (Duschen, Zähneputzen)',
@@ -53,6 +99,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
       'id': 'progress',
       'title': 'Fortschritte & Motivation',
       'icon': Icons.trending_up,
+      'color': const Color(0xFF4facfe),
       'description': 'Person, die ihre Entwicklung visualisieren möchte.',
       'features': [
         'Gewohnheiten mit Statistiken stärken',
@@ -64,6 +111,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
       'id': 'recovery',
       'title': 'Schwierige Zeiten überwinden',
       'icon': Icons.healing,
+      'color': const Color(0xFFfee140),
       'description': 'Person nach Burnout, depressiver Episode oder Trennung.',
       'features': [
         'Schrittweise Wiederaufbau',
@@ -75,6 +123,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
       'id': 'routine',
       'title': 'Personalisierte Tagesroutine',
       'icon': Icons.calendar_today,
+      'color': const Color(0xFF764ba2),
       'description': 'Nutzer von Tagesroutinen oder Journaling.',
       'features': [
         'Einfache, anpassungsfähige App',
@@ -100,15 +149,34 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ziel erfolgreich gespeichert!')),
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Ziel erfolgreich gespeichert! 🎯'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF43e97b),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           );
-          Navigator.pop(context);
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted) {
+            Navigator.of(context).pop(true);
+          }
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Speichern: $e')),
+          SnackBar(
+            content: Text('Fehler beim Speichern: $e'),
+            backgroundColor: Colors.red.shade400,
+          ),
         );
       }
     } finally {
@@ -120,92 +188,380 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wähle dein Ziel'),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Was möchtest du erreichen?',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+      backgroundColor: const Color(0xFF1a1a2e),
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(),
+          SliverToBoxAdapter(
+            child: _isLoading
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(50),
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF667eea),
+                      ),
                     ),
-                    textAlign: TextAlign.center,
+                  )
+                : FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Transform.translate(
+                      offset: Offset(0, _slideAnimation.value),
+                      child: Padding(
+                        padding: EdgeInsets.all(isTablet ? 40 : 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildHeader(isTablet),
+                            const SizedBox(height: 30),
+                            ..._goals.asMap().entries.map((entry) {
+                              return AnimatedBuilder(
+                                animation: _animationController,
+                                builder: (context, child) {
+                                  return Transform.translate(
+                                    offset: Offset(0, (1 - _animationController.value) * 100 * (entry.key + 1)),
+                                    child: Opacity(
+                                      opacity: _animationController.value,
+                                      child: _buildGoalCard(entry.value, isTablet),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
+                            const SizedBox(height: 40),
+                            _buildConfirmButton(isTablet),
+                            const SizedBox(height: 30),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  ..._goals.map((goal) => _buildGoalCard(goal)).toList(),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _selectedGoal == null ? null : _saveSelectedGoal,
-                    child: const Text('Ziel bestätigen'),
-                  ),
-                ],
-              ),
-            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildGoalCard(Map<String, dynamic> goal) {
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF667eea),
+              Color(0xFF764ba2),
+            ],
+          ),
+        ),
+        child: const FlexibleSpaceBar(
+          title: Text(
+            'Zielauswahl',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
+          ),
+          centerTitle: false,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isTablet) {
+    return Container(
+      padding: EdgeInsets.all(isTablet ? 40 : 30),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2d3748),
+            Color(0xFF1a202c),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF667eea).withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.flag,
+              color: Colors.white,
+              size: isTablet ? 40 : 35,
+            ),
+          ),
+          SizedBox(height: isTablet ? 25 : 20),
+          Text(
+            'Was möchtest du erreichen?',
+            style: TextStyle(
+              fontSize: isTablet ? 28 : 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: isTablet ? 15 : 12),
+          Text(
+            'Wähle dein Hauptziel und wir passen die App an deine Bedürfnisse an.',
+            style: TextStyle(
+              fontSize: isTablet ? 18 : 16,
+              color: Colors.white.withOpacity(0.8),
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalCard(Map<String, dynamic> goal, bool isTablet) {
     final isSelected = _selectedGoal == goal['id'];
     
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      color: isSelected ? Colors.pink[50] : null,
-      child: InkWell(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: GestureDetector(
         onTap: () {
           setState(() {
             _selectedGoal = goal['id'];
           });
+          _cardController.forward().then((_) => _cardController.reverse());
         },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          padding: EdgeInsets.all(isTablet ? 30 : 25),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      goal['color'].withOpacity(0.3),
+                      goal['color'].withOpacity(0.1),
+                    ],
+                  )
+                : const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF2d3748),
+                      Color(0xFF1a202c),
+                    ],
+                  ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected 
+                  ? goal['color'] 
+                  : Colors.white.withOpacity(0.1),
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected 
+                    ? goal['color'].withOpacity(0.3) 
+                    : Colors.black.withOpacity(0.2),
+                blurRadius: isSelected ? 20 : 10,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(goal['icon'], size: 32, color: Colors.pink),
-                  const SizedBox(width: 12),
+                  Container(
+                    padding: EdgeInsets.all(isTablet ? 16 : 14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          goal['color'],
+                          goal['color'].withOpacity(0.7),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: goal['color'].withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      goal['icon'],
+                      size: isTablet ? 32 : 28,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       goal['title'],
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: isTablet ? 20 : 18,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                   if (isSelected)
-                    const Icon(Icons.check_circle, color: Colors.green),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: isTablet ? 20 : 16),
               Text(
                 goal['description'],
-                style: const TextStyle(color: Colors.black54),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: isTablet ? 16 : 14,
+                  height: 1.4,
+                ),
               ),
-              const SizedBox(height: 12),
-              ...(goal['features'] as List<String>).map((feature) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
+              SizedBox(height: isTablet ? 20 : 16),
+              ...(goal['features'] as List<String>).map((feature) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.check, size: 16, color: Colors.green),
-                    const SizedBox(width: 8),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      margin: const EdgeInsets.only(top: 6, right: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [goal['color'], goal['color'].withOpacity(0.7)],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
                     Expanded(
-                      child: Text(feature),
+                      child: Text(
+                        feature,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: isTablet ? 15 : 13,
+                          height: 1.4,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               )),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConfirmButton(bool isTablet) {
+    return Container(
+      width: double.infinity,
+      height: isTablet ? 60 : 55,
+      child: ElevatedButton(
+        onPressed: _selectedGoal == null ? null : _saveSelectedGoal,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: _selectedGoal != null
+                ? const LinearGradient(
+                    colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                  )
+                : LinearGradient(
+                    colors: [
+                      Colors.grey.withOpacity(0.3),
+                      Colors.grey.withOpacity(0.2),
+                    ],
+                  ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: _selectedGoal != null
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF667eea).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Container(
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
+                  size: isTablet ? 24 : 22,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Ziel bestätigen',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isTablet ? 18 : 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

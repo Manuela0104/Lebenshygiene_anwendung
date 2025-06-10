@@ -22,7 +22,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
   int _steps = 0;
   int _stepsGoal = 10000;
   double _water = 1.2; // in Litern
@@ -35,12 +35,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double _height = 170.0;
   DateTime _selectedDate = DateTime.now();
   String? _weightRecommendation; // Variable to store the recommendation
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutBack,
+    ));
+    
     _loadUserGoals();
     _loadDailyData(_selectedDate);
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserGoals() async {
@@ -69,6 +100,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .collection('dailyData')
         .doc(dateStr)
         .get();
+    
+    // Réinitialiser les données si c'est un nouveau jour
+    if (!doc.exists && DateFormat('yyyy-MM-dd').format(date) == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('dailyData')
+          .doc(dateStr)
+          .set({
+        'steps': 0,
+        'water': 0.0,
+        'sleep': 0.0,
+        'kcal': 0,
+        'date': dateStr,
+      });
+    }
+
     if (doc.exists) {
       final data = doc.data()!;
       if (!mounted) return;
@@ -80,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _weight = (data['weight'] ?? 0.0).toDouble();
         _height = (data['height'] ?? 0.0).toDouble();
       });
-      // Wenn Gewicht fehlt oder null ist, aus Benutzerprofil laden
+      // Si le poids est manquant ou null, le charger depuis le profil utilisateur
       if ((data['weight'] == null || data['weight'] == 0.0)) {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
@@ -91,7 +139,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           });
         }
       }
-      // Wenn Größe fehlt oder null ist, aus Benutzerprofil laden
+      // Si la taille est manquante ou null, la charger depuis le profil utilisateur
       if ((data['height'] == null || data['height'] == 0.0)) {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
@@ -110,7 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _sleep = 0.0;
         _kcal = 0;
       });
-      // Größe und Gewicht aus Benutzerprofil laden
+      // Charger la taille et le poids depuis le profil utilisateur
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (userDoc.exists) {
         final userData = userDoc.data()!;
@@ -121,59 +169,98 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     }
-    // After loading weight and height, update the recommendation
-    _updateWeightRecommendation();
   }
 
   double _calculateBMI() {
-    if (_height <= 0) return 0;
-    return _weight / ((_height / 100) * (_height / 100));
+    if (_height > 0 && _weight > 0) {
+      double heightInMeters = _height / 100;
+      return _weight / (heightInMeters * heightInMeters);
+    }
+    return 0.0;
   }
 
   String _bmiStatus(double bmi) {
-    if (bmi < 18.5) return 'Abmagerung';
-    if (bmi < 25) return 'Normal';
+    if (bmi < 18.5) return 'Untergewicht';
+    if (bmi < 25) return 'Normalgewicht';
     if (bmi < 30) return 'Übergewicht';
-    return 'Fettleibigkeit';
-  }
-
-  // New function to calculate weight recommendation
-  void _updateWeightRecommendation() {
-    final bmi = _calculateBMI();
-    String? recommendation;
-    if (bmi > 24.9 && _height > 0) {
-      final idealWeightMax = 24.9 * (_height / 100) * (_height / 100);
-      final weightToLose = _weight - idealWeightMax;
-      if (weightToLose > 0) {
-        recommendation = 'Abnehmen: ca. ${weightToLose.toStringAsFixed(1)} kg';
-      } else {
-         recommendation = 'IMC fast im Normalbereich.'; // Close to normal
-      }
-    } else if (bmi < 18.5 && _height > 0) {
-      final idealWeightMin = 18.5 * (_height / 100) * (_height / 100);
-      final weightToGain = idealWeightMin - _weight;
-      if (weightToGain > 0) {
-         recommendation = 'Zunehmen: ca. ${weightToGain.toStringAsFixed(1)} kg';
-      } else {
-        recommendation = 'IMC fast im Normalbereich.'; // Close to normal
-      }
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _weightRecommendation = recommendation;
-    });
+    return 'Adipositas';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8EAF6),
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.flag),
+      backgroundColor: const Color(0xFF1a1a2e),
+      body: CustomScrollView(
+        slivers: [
+          _buildModernAppBar(),
+          SliverToBoxAdapter(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildWelcomeSection(),
+                      const SizedBox(height: 30),
+                      _buildMainStatsCard(),
+                      const SizedBox(height: 30),
+                      _buildQuickActionsSection(),
+                      const SizedBox(height: 30),
+                      _buildHealthMetricsSection(),
+                      const SizedBox(height: 30),
+                      _buildCategoriesSection(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF667eea),
+              Color(0xFF764ba2),
+            ],
+          ),
+        ),
+        child: FlexibleSpaceBar(
+          title: const Text(
+            'Dashboard',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
+          ),
+          centerTitle: false,
+        ),
+      ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.flag_outlined, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -184,8 +271,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             tooltip: 'Ziele',
           ),
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
+        ),
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.calendar_today_outlined, color: Colors.white),
             onPressed: () async {
               final picked = await showDatePicker(
                 context: context,
@@ -202,162 +296,282 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             tooltip: 'Kalender',
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF16213e),
+            Color(0xFF0f172a),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
         ],
       ),
-      body: SingleChildScrollView(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hallo! 👋',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Wie läuft dein Tag?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF667eea).withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    DateFormat('dd. MMMM yyyy').format(_selectedDate),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+              ),
+              borderRadius: BorderRadius.circular(40),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF667eea).withOpacity(0.4),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.self_improvement,
+              color: Colors.white,
+              size: 40,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainStatsCard() {
+    return Container(
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2d3748),
+            Color(0xFF1a202c),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Deine heutigen Fortschritte',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 30),
+          CircularPercentIndicator(
+            radius: 80,
+            lineWidth: 12,
+            percent: (_steps / _stepsGoal).clamp(0.0, 1.0),
+            center: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.directions_walk,
+                  color: Color(0xFF667eea),
+                  size: 32,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${(_steps / _stepsGoal * 100).toInt()}%',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '$_steps Schritte',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            progressColor: const Color(0xFF667eea),
+            backgroundColor: Colors.white.withOpacity(0.1),
+            circularStrokeCap: CircularStrokeCap.round,
+          ),
+          const SizedBox(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildMiniProgressIndicator(
+                'Wasser',
+                _water,
+                _waterGoal,
+                const Color(0xFF4facfe),
+                Icons.water_drop,
+                'L',
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WaterCounterScreen()),
+                ).then((_) => _loadDailyData(_selectedDate)),
+              ),
+              _buildMiniProgressIndicator(
+                'Schlaf',
+                _sleep,
+                _sleepGoal,
+                const Color(0xFF43e97b),
+                Icons.bedtime,
+                'h',
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SleepCounterScreen()),
+                ).then((_) => _loadDailyData(_selectedDate)),
+              ),
+              _buildMiniProgressIndicator(
+                'Kalorien',
+                _kcal.toDouble(),
+                _kcalGoal.toDouble(),
+                const Color(0xFFfa709a),
+                Icons.local_fire_department,
+                'kcal',
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CalorieCounterScreen()),
+                ).then((_) => _loadDailyData(_selectedDate)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniProgressIndicator(
+    String label,
+    double value,
+    double goal,
+    Color color,
+    IconData icon,
+    String unit,
+    VoidCallback onTap,
+  ) {
+    final percentage = (value / goal).clamp(0.0, 1.0);
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
         padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Übersicht (zentraler Kreis)
-            Card(
-              color: const Color(0xFFF3CFE2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // Zentraler Kreis: Schritte / Ziel
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.directions_walk, color: Colors.pinkAccent, size: 22),
-                        SizedBox(width: 6),
-                        Text('Schritte heute', style: TextStyle(color: Colors.black54, fontSize: 16)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    CircularPercentIndicator(
-                      radius: 70,
-                      lineWidth: 12,
-                      percent: (_steps / _stepsGoal).clamp(0.0, 1.0),
-                      center: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('$_steps', style: const TextStyle(fontSize: 28, color: Colors.black, fontWeight: FontWeight.bold)),
-                          Text('von $_stepsGoal', style: const TextStyle(color: Colors.black54)),
-                        ],
-                      ),
-                      progressColor: Colors.pinkAccent,
-                      backgroundColor: Colors.pink[100]!,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => WaterCounterScreen(),
-                              ),
-                            );
-                          },
-                          child: _buildProgressBar('Wasser', _water, _waterGoal, Colors.pink[300]!, 'L'),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SleepCounterScreen(),
-                              ),
-                            );
-                          },
-                          child: _buildProgressBar('Schlaf', _sleep, _sleepGoal, Colors.pink[200]!, 'h'),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CalorieCounterScreen(),
-                              ),
-                            );
-                          },
-                          child: _buildProgressBar('Kalorien', _kcal.toDouble(), _kcalGoal.toDouble(), Colors.pink[400]!, 'kcal'),
-                        ),
-                      ],
-                    ),
-                  ],
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: 60,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: percentage,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            // Kategorien
-            Text('Kategorien', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 10),
-            Card(
-              color: const Color(0xFFF3CFE2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Column(
-                children: [
-                  _buildCategoryTile(Icons.check_circle, 'Habit Tracker', Colors.amber, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HabitTrackerScreen(),
-                      ),
-                    );
-                  }),
-                  _buildCategoryTile(Icons.star, 'Mini-Herausforderungen', Colors.blueAccent, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MiniChallengesScreen(),
-                      ),
-                    );
-                  }),
-                  _buildCategoryTile(Icons.trending_up, 'Trends & Berichte', Colors.greenAccent, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TrendsScreen(),
-                      ),
-                    );
-                  }),
-                  _buildCategoryTile(Icons.notifications_active, 'Intelligente Erinnerungen', Colors.orangeAccent, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SmartRemindersScreen(),
-                      ),
-                    );
-                  }),
-                  _buildCategoryTile(Icons.sentiment_satisfied_alt, 'Stimmungs-Tracker', Colors.purpleAccent, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MoodTrackerScreen(),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Gewicht, Größe, BMI
-            Card(
-              color: const Color(0xFFF3CFE2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildInfoTile('Gewicht', '${_weight.toStringAsFixed(1)} kg', Icons.monitor_weight, Colors.orange),
-                    _buildInfoTile('Größe', '${_height.toStringAsFixed(1)} cm', Icons.height, Colors.pink),
-                    _buildInfoTile(
-                      'BMI',
-                      _calculateBMI().toStringAsFixed(1),
-                      Icons.calculate,
-                      Colors.pinkAccent,
-                      bmiStatus: _bmiStatus(_calculateBMI()),
-                      weightRecommendation: _weightRecommendation,
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 8),
+            Text(
+              '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)}/$goal $unit',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -366,54 +580,325 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildProgressBar(String label, double value, double goal, Color color, String unit) {
+  Widget _buildQuickActionsSection() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-        const SizedBox(height: 4),
-        LinearPercentIndicator(
-          width: 70,
-          lineHeight: 8,
-          percent: (value / goal).clamp(0.0, 1.0),
-          progressColor: color,
-          backgroundColor: Colors.pink[100],
+        const Text(
+          'Schnellzugriff',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        const SizedBox(height: 2),
-        Text('${value.toStringAsFixed(1)} / ${goal.toStringAsFixed(1)} $unit', style: const TextStyle(color: Colors.black54, fontSize: 10)),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionCard(
+                'Gewohnheiten',
+                Icons.check_circle_outline,
+                const Color(0xFF667eea),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HabitTrackerScreen()),
+                ),
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: _buildQuickActionCard(
+                'Stimmung',
+                Icons.sentiment_satisfied_alt,
+                const Color(0xFF764ba2),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MoodTrackerScreen()),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withOpacity(0.8),
+              color.withOpacity(0.6),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white, size: 32),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHealthMetricsSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2d3748),
+            Color(0xFF1a202c),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Gesundheitsmetriken',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildHealthMetric(
+                'Gewicht',
+                '${_weight.toStringAsFixed(1)} kg',
+                Icons.monitor_weight,
+                const Color(0xFFff9a9e),
+              ),
+              _buildHealthMetric(
+                'Größe',
+                '${_height.toStringAsFixed(0)} cm',
+                Icons.height,
+                const Color(0xFFa8edea),
+              ),
+              _buildHealthMetric(
+                'BMI',
+                _calculateBMI().toStringAsFixed(1),
+                Icons.calculate,
+                const Color(0xFFfad0c4),
+                subtitle: _bmiStatus(_calculateBMI()),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHealthMetric(String label, String value, IconData icon, Color color, {String? subtitle}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoriesSection() {
+    final categories = [
+      {
+        'title': 'Mini-Herausforderungen',
+        'icon': Icons.star_outline,
+        'color': const Color(0xFF4facfe),
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MiniChallengesScreen()),
+        ),
+      },
+      {
+        'title': 'Trends & Berichte',
+        'icon': Icons.trending_up,
+        'color': const Color(0xFF43e97b),
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TrendsScreen()),
+        ),
+      },
+      {
+        'title': 'Intelligente Erinnerungen',
+        'icon': Icons.notifications_active_outlined,
+        'color': const Color(0xFFfa709a),
+        'onTap': () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SmartRemindersScreen()),
+        ),
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Weitere Features',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 20),
+        ...categories.map((category) => Container(
+          margin: const EdgeInsets.only(bottom: 15),
+          child: _buildCategoryTile(
+            category['icon'] as IconData,
+            category['title'] as String,
+            category['color'] as Color,
+            category['onTap'] as VoidCallback,
+          ),
+        )),
       ],
     );
   }
 
   Widget _buildCategoryTile(IconData icon, String title, Color color, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: color, size: 32),
-      title: Text(title, style: const TextStyle(color: Colors.black, fontSize: 16)),
-      trailing: Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              const Color(0xFF2d3748),
+              const Color(0xFF1a202c),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: IconButton(
-          icon: Icon(Icons.add, color: color),
-          onPressed: onTap,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white.withOpacity(0.5),
+              size: 16,
+            ),
+          ],
         ),
       ),
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildInfoTile(String label, String value, IconData icon, Color color, {String? bmiStatus, String? weightRecommendation}) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 28),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-        Text(value, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
-        if (bmiStatus != null)
-          Text(bmiStatus, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-        if (weightRecommendation != null)
-          Text(weightRecommendation, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-      ],
     );
   }
 }
