@@ -4,16 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:intl/intl.dart';
-import 'fragebogen.dart';
+import 'questionnaire_screen.dart';
 import 'water_counter_screen.dart';
 import 'sleep_counter_screen.dart';
 import 'calorie_counter_screen.dart';
 import 'habit_tracker_screen.dart';
 import 'mini_challenges_screen.dart';
-import 'package:lebenshygiene_anwendung/screens/trends_screen.dart';
-import 'package:lebenshygiene_anwendung/screens/smart_reminders_screen.dart';
-import 'package:lebenshygiene_anwendung/screens/mood_tracker_screen.dart';
-import 'package:lebenshygiene_anwendung/screens/goal_selection_screen.dart';
+import 'trends_report_screen.dart';
+import 'enhanced_mood_tracker_screen.dart';
+import 'smart_reminders_screen.dart';
+import 'goal_selection_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -614,7 +614,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 const Color(0xFF764ba2),
                 () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MoodTrackerScreen()),
+                  MaterialPageRoute(builder: (context) => const EnhancedMoodTrackerScreen()),
                 ),
               ),
             ),
@@ -802,7 +802,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         'color': const Color(0xFF43e97b),
         'onTap': () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const TrendsScreen()),
+          MaterialPageRoute(builder: (context) => const TrendsReportScreen()),
         ),
       },
       {

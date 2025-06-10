@@ -579,7 +579,7 @@ class _EnhancedMoodTrackerScreenState extends State<EnhancedMoodTrackerScreen> w
                 borderSide: const BorderSide(color: Color(0xFFfee140)),
               ),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.05),
+              fillColor: const Color(0xFF2d3748),
             ),
           ),
           SizedBox(height: isTablet ? 20 : 16),

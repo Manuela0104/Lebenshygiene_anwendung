@@ -5,7 +5,7 @@ import 'firebase_options.dart';
 import 'screens/home.dart';
 import 'screens/auth_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/fragebogen.dart';
+import 'screens/questionnaire_screen.dart';
 import 'screens/nutrition_screen.dart';
 import 'screens/training_screen.dart';
 import 'screens/login_screen.dart';
@@ -56,6 +56,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Lebenshygiene App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // Use colorScheme to define the primary colors
         colorScheme: ColorScheme.fromSeed(
@@ -119,28 +120,29 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       initialRoute: '/',
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (snapshot.hasData) {
+            return const Home();
+          }
+          
+          return const LoginScreen();
+        },
+      ),
       routes: {
-        '/': (context) => StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            
-            if (snapshot.hasData) {
-              return const HomeScreen();
-            }
-            
-            return const LoginScreen();
-          },
-        ),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const Home(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
         '/profile': (context) => const ProfileScreen(),
-        '/questionnaire': (context) => const QuestionnaireScreen(),
+        '/fragebogen': (context) => const QuestionnaireScreen(),
         '/nutrition': (context) => const NutritionScreen(),
         '/training': (context) => const TrainingScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/habit_tracker': (context) => const HabitTrackerScreen(),
+        '/habits': (context) => const HabitTrackerScreen(),
       },
     );
   }

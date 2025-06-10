@@ -6,23 +6,23 @@ import 'reminders_screen.dart';
 import 'trends_report_screen.dart';
 import 'goals_progress_screen.dart';
 import 'enhanced_mood_tracker_screen.dart';
+import 'goal_selection_screen.dart';
+import 'smart_reminders_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class Home extends StatefulWidget {
+  const Home({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<Home> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<Home> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   late AnimationController _animationController;
   
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const TrendsReportScreen(),
-    const GoalsProgressScreen(),
-    const EnhancedMoodTrackerScreen(),
+    const GoalSelectionScreen(),
     const ProfileScreen(),
     const RemindersScreen(),
   ];
@@ -130,14 +130,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-
-
   Widget _buildCustomBottomNavBar() {
     final navItems = [
       {'icon': Icons.dashboard_outlined, 'activeIcon': Icons.dashboard, 'label': 'Dashboard'},
-      {'icon': Icons.analytics_outlined, 'activeIcon': Icons.analytics, 'label': 'Trends'},
       {'icon': Icons.flag_outlined, 'activeIcon': Icons.flag, 'label': 'Ziele'},
-      {'icon': Icons.mood_outlined, 'activeIcon': Icons.mood, 'label': 'Stimmung'},
       {'icon': Icons.person_outline, 'activeIcon': Icons.person, 'label': 'Profil'},
       {'icon': Icons.notifications_outlined, 'activeIcon': Icons.notifications, 'label': 'Alarm'},
     ];

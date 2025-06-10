@@ -148,7 +148,7 @@ class _RemindersScreenState extends State<RemindersScreen> with TickerProviderSt
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: const Color(0xFF2d3748),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.1),
@@ -165,6 +165,8 @@ class _RemindersScreenState extends State<RemindersScreen> with TickerProviderSt
                     hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.all(16),
+                    filled: true,
+                    fillColor: const Color(0xFF2d3748),
                   ),
                 ),
               ),

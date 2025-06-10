@@ -1227,9 +1227,17 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: color),
           labelText: label,
-          labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+          labelStyle: TextStyle(color: Colors.white70),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.white30),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF667eea)),
+          ),
+          filled: true,
+          fillColor: Color(0xFF2d3748),
         ),
       ),
     );
@@ -1289,11 +1297,7 @@ class KontoEditScreen extends StatefulWidget {
 class _KontoEditScreenState extends State<KontoEditScreen> {
   final _emailController = TextEditingController();
   final _zielController = TextEditingController();
-  final _zielKcalController = TextEditingController();
-  final _zielSleepController = TextEditingController();
-  final _zielWaterController = TextEditingController();
-  final _zielStepsController = TextEditingController();
-  DateTime _birthDate = DateTime.now().subtract(const Duration(days: 365 * 30));
+  DateTime _birthDate = DateTime.now().subtract(const Duration(days: 365 * 18));
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -1314,10 +1318,6 @@ class _KontoEditScreenState extends State<KontoEditScreen> {
             _emailController.text = data['email'] ?? user.email ?? '';
             _zielController.text = data['ziel'] ?? '';
             _birthDate = (data['birthDate'] as Timestamp?)?.toDate() ?? _birthDate;
-            _zielKcalController.text = (data['zielKcal'] ?? 2000).toString();
-            _zielSleepController.text = (data['zielSleep'] ?? 8).toString();
-            _zielWaterController.text = (data['zielWater'] ?? 2).toString();
-            _zielStepsController.text = (data['zielSteps'] ?? 10000).toString();
             _isLoading = false;
           });
         }
@@ -1330,146 +1330,341 @@ class _KontoEditScreenState extends State<KontoEditScreen> {
     }
   }
 
-  Future<void> _saveKonto() async {
-    setState(() => _isLoading = true);
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-          'email': _emailController.text.trim(),
-          'ziel': _zielController.text.trim(),
-          'birthDate': _birthDate,
-          'zielKcal': int.tryParse(_zielKcalController.text) ?? 2000,
-          'zielSleep': double.tryParse(_zielSleepController.text) ?? 8.0,
-          'zielWater': double.tryParse(_zielWaterController.text) ?? 2.0,
-          'zielSteps': int.tryParse(_zielStepsController.text) ?? 10000,
-        });
-        setState(() => _isLoading = false);
-        if (mounted) Navigator.pop(context);
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Fehler beim Speichern.';
-      });
-    }
-  }
-
-  Future<void> _changePassword() async {
-    // Envoie un email de réinitialisation du mot de passe
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('E-Mail zum Zurücksetzen gesendet.')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e')),
-        );
-      }
-    }
-  }
-
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _birthDate,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFfa709a),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF2d3748),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _birthDate) {
-      setState(() => _birthDate = picked);
+      setState(() {
+        _birthDate = picked;
+      });
+    }
+  }
+
+  Future<void> _changePassword() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && user.email != null) {
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('E-Mail zum Zurücksetzen des Passworts wurde gesendet.'),
+                ],
+              ),
+              backgroundColor: Colors.green.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler: $e'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveKonto() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'email': _emailController.text.trim(),
+          'birthDate': Timestamp.fromDate(_birthDate),
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Änderungen erfolgreich gespeichert!'),
+                ],
+              ),
+              backgroundColor: Colors.green.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Fehler beim Speichern: $e';
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Konto bearbeiten'),
+        title: const Text(
+          'Konto bearbeiten',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFfa709a),
+                Color(0xFFfee140),
+              ],
+            ),
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(20),
-          child: Column(
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFfa709a)))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+                children: [
                   if (_errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                    ),
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 15),
-                  TextFormField(
-                    controller: _zielController,
-                    decoration: const InputDecoration(
-                      labelText: 'Ziel',
-                      prefixIcon: Icon(Icons.flag),
-                      border: OutlineInputBorder(),
-                    ),
-                    readOnly: true,
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const GoalSelectionScreen(),
-                        ),
-                      );
-                      if (result == true) {
-                        await _loadUserData();
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 15),
-                  InkWell(
-                    onTap: () => _selectDate(context),
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Geburtsdatum',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.calendar_today),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red.shade200),
                       ),
-                      child: Text(DateFormat('dd.MM.yyyy').format(_birthDate)),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.red.shade400),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(color: Colors.red.shade700),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  _buildInfoCard(
+                    icon: Icons.email,
+                    title: 'Email',
+                    child: TextFormField(
+                      controller: _emailController,
+                      style: const TextStyle(
+                        color: Color(0xFF2d3748),
+                        fontSize: 16,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      readOnly: true,
                     ),
                   ),
-                  const SizedBox(height: 15),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.lock_reset),
-                    label: const Text('Passwort vergessen ?'),
-                    onPressed: _changePassword,
+                  const SizedBox(height: 16),
+                  _buildInfoCard(
+                    icon: Icons.flag,
+                    title: 'Ziel',
+                    child: TextFormField(
+                      controller: _zielController,
+                      style: const TextStyle(
+                        color: Color(0xFF2d3748),
+                        fontSize: 16,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      readOnly: true,
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const GoalSelectionScreen(),
+                          ),
+                        );
+                        if (result == true) {
+                          await _loadUserData();
+                        }
+                      },
+                    ),
                   ),
-                  const Spacer(),
-                  SizedBox(
+                  const SizedBox(height: 16),
+                  _buildInfoCard(
+                    icon: Icons.calendar_today,
+                    title: 'Geburtsdatum',
+                    child: InkWell(
+                      onTap: () => _selectDate(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          DateFormat('dd.MM.yyyy').format(_birthDate),
+                          style: const TextStyle(
+                            color: Color(0xFF2d3748),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
                     width: double.infinity,
                     height: 50,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF667eea).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.lock_reset, color: Colors.white),
+                      label: const Text(
+                        'Passwort vergessen ?',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: _changePassword,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFfa709a), Color(0xFFfee140)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFfa709a).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: ElevatedButton(
                       onPressed: _saveKonto,
-                      child: const Text('Speichern', style: TextStyle(fontSize: 16)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Speichern',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required Widget child,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: const Color(0xFFfa709a), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF2d3748),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -1558,107 +1753,246 @@ class _BenutzerEditScreenState extends State<BenutzerEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Benutzer bearbeiten'),
+        title: const Text(
+          'Benutzer bearbeiten',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF667eea),
+                Color(0xFF764ba2),
+              ],
+            ),
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF667eea)))
+          : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (_errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.red.shade400),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(color: Colors.red.shade700),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  TextFormField(
+                  _buildProfileField(
                     controller: _firstNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Vorname',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'Vorname',
+                    icon: Icons.person,
                   ),
-                  const SizedBox(height: 15),
-                  TextFormField(
+                  const SizedBox(height: 16),
+                  _buildProfileField(
                     controller: _lastNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nachname',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'Nachname',
+                    icon: Icons.person,
                   ),
-                  const SizedBox(height: 15),
-                  TextFormField(
+                  const SizedBox(height: 16),
+                  _buildProfileField(
                     controller: _locationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Wohnort',
-                      prefixIcon: Icon(Icons.location_on),
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'Wohnort',
+                    icon: Icons.location_on,
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
+                        child: _buildProfileField(
                           initialValue: _height.toString(),
-                          decoration: const InputDecoration(
-                            labelText: 'Größe (cm)',
-                            prefixIcon: Icon(Icons.height),
-                            border: OutlineInputBorder(),
-                          ),
+                          label: 'Größe (cm)',
+                          icon: Icons.height,
                           keyboardType: TextInputType.number,
                           onChanged: (value) => _height = double.tryParse(value) ?? _height,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 16),
                       Expanded(
-                        child: TextFormField(
+                        child: _buildProfileField(
                           initialValue: _weight.toString(),
-                          decoration: const InputDecoration(
-                            labelText: 'Gewicht (kg)',
-                            prefixIcon: Icon(Icons.monitor_weight),
-                            border: OutlineInputBorder(),
-                          ),
+                          label: 'Gewicht (kg)',
+                          icon: Icons.monitor_weight,
                           keyboardType: TextInputType.number,
                           onChanged: (value) => _weight = double.tryParse(value) ?? _weight,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    value: _gender,
-                    decoration: const InputDecoration(
-                      labelText: 'Geschlecht',
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
-                ),
-                items: ['Männlich', 'Weiblich', 'Andere']
-                    .map((gender) => DropdownMenuItem(
-                          value: gender,
-                          child: Text(gender),
-                        ))
-                    .toList(),
-                onChanged: (value) => setState(() => _gender = value!),
-              ),
-                  const Spacer(),
-                  SizedBox(
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _gender,
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        style: const TextStyle(
+                          color: Color(0xFF2d3748),
+                          fontSize: 16,
+                        ),
+                        icon: const Icon(
+                          Icons.arrow_drop_down,
+                          color: Color(0xFF667eea),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'Weiblich',
+                            child: Text('Weiblich'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Männlich',
+                            child: Text('Männlich'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Divers',
+                            child: Text('Divers'),
+                          ),
+                        ],
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() => _gender = newValue);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  Container(
                     width: double.infinity,
-                    height: 50,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF667eea).withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
                     child: ElevatedButton(
                       onPressed: _saveBenutzer,
-                      child: const Text('Speichern', style: TextStyle(fontSize: 16)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Speichern',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildProfileField({
+    TextEditingController? controller,
+    String? initialValue,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    void Function(String)? onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        initialValue: controller == null ? initialValue : null,
+        style: const TextStyle(
+          color: Color(0xFF2d3748),
+          fontSize: 16,
+        ),
+        keyboardType: keyboardType,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(
+            color: Color(0xFF667eea),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(icon, color: const Color(0xFF667eea)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.all(16),
         ),
       ),
     );

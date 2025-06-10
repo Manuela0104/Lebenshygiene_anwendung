@@ -300,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: const Color(0xFF2d3748),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Colors.white.withOpacity(0.1),
@@ -332,6 +332,8 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           ),
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,
+          filled: true,
+          fillColor: const Color(0xFF2d3748),
         ),
       ),
     );

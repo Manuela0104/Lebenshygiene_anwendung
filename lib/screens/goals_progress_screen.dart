@@ -1034,6 +1034,8 @@ class _BuildGoalEditDialogState extends State<_BuildGoalEditDialog> {
             borderSide: BorderSide(color: Color(0xFF667eea)),
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
+          filled: true,
+          fillColor: const Color(0xFF2d3748),
         ),
       ),
       actions: [
