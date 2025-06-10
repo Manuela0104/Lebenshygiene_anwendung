@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'dart:math' as math;
 
 class HabitsScreen extends StatefulWidget {
   const HabitsScreen({super.key});
@@ -11,95 +10,24 @@ class HabitsScreen extends StatefulWidget {
   State<HabitsScreen> createState() => _HabitsScreenState();
 }
 
-class _HabitsScreenState extends State<HabitsScreen> with TickerProviderStateMixin {
+class _HabitsScreenState extends State<HabitsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-  bool _isLoading = true;
+  
   List<Map<String, dynamic>> _habits = [];
-  int _streakCount = 0;
-  double _completionRate = 0.0;
-  int _totalHabits = 0;
-  int _completedToday = 0;
-
-  // Voreingestellte Gewohnheiten
-  final List<Map<String, dynamic>> _defaultHabits = [
-    {
-      'id': 'hydration',
-      'name': 'Hydration',
-      'icon': Icons.water_drop,
-      'color': Color(0xFF43e97b),
-    },
-    {
-      'id': 'active_pause',
-      'name': 'Aktive Pause',
-      'icon': Icons.directions_walk,
-      'color': Color(0xFF43e97b),
-    },
-    {
-      'id': 'evening_routine',
-      'name': 'Abendroutine',
-      'icon': Icons.nightlight_round,
-      'color': Color(0xFF43e97b),
-    },
-    {
-      'id': 'decoupling',
-      'name': 'Entkopplung',
-      'icon': Icons.phone_android_outlined,
-      'color': Color(0xFF43e97b),
-    },
-    {
-      'id': 'meditation',
-      'name': 'Meditation',
-      'icon': Icons.self_improvement,
-      'color': Color(0xFF43e97b),
-    },
-    {
-      'id': 'sleep',
-      'name': 'Schlaf',
-      'icon': Icons.bedtime,
-      'color': Color(0xFF43e97b),
-    },
-  ];
-
   Map<String, bool> _completionStatus = {};
+  bool _isLoading = true;
   String _errorMessage = '';
+  int _streakCount = 0;
+  double _progressPercentage = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
-    _initializeUserData();
+    _loadHabits();
   }
 
-  void _setupAnimations() {
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
-    _slideAnimation = Tween<double>(
-      begin: 50.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
-    _animationController.forward();
-  }
-
-  Future<void> _initializeUserData() async {
+  Future<void> _loadHabits() async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -108,43 +36,86 @@ class _HabitsScreenState extends State<HabitsScreen> with TickerProviderStateMix
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        // Créer ou mettre à jour le document utilisateur
-        final userDocRef = _firestore.collection('users').doc(user.uid);
-        
-        await userDocRef.set({
-          'email': user.email,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        // Lade die Gewohnheiten des Benutzers
+        final habitsSnapshot = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('habits')
+            .get();
 
-        // Initialiser les habitudes par défaut si elles n'existent pas
-        final habitsCollectionRef = userDocRef.collection('habits');
-        final habitsSnapshot = await habitsCollectionRef.get();
+        setState(() {
+          _habits = habitsSnapshot.docs
+              .map((doc) {
+                final data = doc.data();
+                final iconCode = data['iconCode'] as int?;
+                return {
+                  'id': doc.id,
+                  'name': data['name'] as String? ?? 'Unbenannte Gewohnheit',
+                  'icon': iconCode != null 
+                      ? IconData(iconCode, fontFamily: 'MaterialIcons')
+                      : Icons.check_circle_outline,
+                };
+              })
+              .toList();
+        });
 
-        if (habitsSnapshot.docs.isEmpty) {
-          final batch = _firestore.batch();
-          for (var habit in _defaultHabits) {
-            final habitDoc = habitsCollectionRef.doc(habit['id']);
-            batch.set(habitDoc, {
-              'name': habit['name'],
-              'createdAt': FieldValue.serverTimestamp(),
-              'isActive': true,
-            });
-          }
-          await batch.commit();
-        }
-
-        // Charger le statut de complétion pour aujourd'hui
         await _loadCompletionStatus();
         await _loadStreak();
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Fehler beim Initialisieren der Daten: $e';
+        _errorMessage = 'Fehler beim Laden der Gewohnheiten: $e';
       });
       debugPrint(_errorMessage);
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loadCompletionStatus() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final today = DateTime.now();
+        final dateStr = DateFormat('yyyy-MM-dd').format(today);
+        
+        final statusDoc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('daily_status')
+            .doc(dateStr)
+            .get();
+
+        final completed = statusDoc.exists 
+            ? List<String>.from(statusDoc.data()?['completed'] ?? [])
+            : <String>[];
+        
+        setState(() {
+          _completionStatus = Map.fromIterable(
+            _habits,
+            key: (habit) => habit['id'] as String,
+            value: (habit) => completed.contains(habit['id']),
+          );
+          
+          // Aktualisiere den Fortschritt
+          _updateProgress();
+        });
+      }
+    } catch (e) {
+      debugPrint('Fehler beim Laden des Status: $e');
+    }
+  }
+
+  void _updateProgress() {
+    if (_habits.isEmpty) {
+      setState(() => _progressPercentage = 0.0);
+      return;
+    }
+    
+    final completedCount = _completionStatus.values.where((v) => v).length;
+    setState(() {
+      _progressPercentage = completedCount / _habits.length;
+    });
   }
 
   Future<void> _loadStreak() async {
@@ -163,92 +134,57 @@ class _HabitsScreenState extends State<HabitsScreen> with TickerProviderStateMix
         });
       }
     } catch (e) {
-      debugPrint('Error loading streak: $e');
+      debugPrint('Fehler beim Laden des Streaks: $e');
     }
   }
 
-  Future<void> _loadCompletionStatus() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        final today = DateTime.now();
-        final dateStr = DateFormat('yyyy-MM-dd').format(today);
-        
-        final statusDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('daily_status')
-            .doc(dateStr)
-            .get();
-
-        final completed = List<String>.from(statusDoc.data()?['completed'] ?? []);
-        setState(() {
-          _completionStatus = Map.fromIterable(
-            _defaultHabits,
-            key: (habit) => habit['id'] as String,
-            value: (habit) => completed.contains(habit['id']),
-          );
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Fehler beim Laden der Gewohnheiten: $e';
-      });
-      debugPrint(_errorMessage);
-    }
-  }
-
-  Future<void> _toggleHabit(Map<String, dynamic> habit) async {
+  Future<void> _toggleHabit(String habitId) async {
     final user = _auth.currentUser;
     if (user == null) return;
 
     final today = DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(today);
-    final newStatus = !(_completionStatus[habit['id']] ?? false);
+    final newStatus = !(_completionStatus[habitId] ?? false);
 
     setState(() {
-      _completionStatus[habit['id']] = newStatus;
-      _errorMessage = '';
+      _completionStatus[habitId] = newStatus;
+      _updateProgress();
     });
 
     try {
-      final statusDocRef = _firestore
+      final statusRef = _firestore
           .collection('users')
           .doc(user.uid)
           .collection('daily_status')
           .doc(dateStr);
 
       await _firestore.runTransaction((transaction) async {
-        final statusDoc = await transaction.get(statusDocRef);
+        final statusDoc = await transaction.get(statusRef);
+        final completed = statusDoc.exists 
+            ? List<String>.from(statusDoc.data()?['completed'] ?? [])
+            : <String>[];
         
-        if (statusDoc.exists) {
-          List<String> completed = List<String>.from(statusDoc.data()?['completed'] ?? []);
-          if (newStatus) {
-            completed.add(habit['id']);
-          } else {
-            completed.remove(habit['id']);
-          }
-          transaction.update(statusDocRef, {
-            'completed': completed,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          });
+        if (newStatus) {
+          completed.add(habitId);
         } else {
-          transaction.set(statusDocRef, {
-            'completed': newStatus ? [habit['id']] : [],
-            'date': dateStr,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          });
+          completed.remove(habitId);
         }
+
+        transaction.set(statusRef, {
+          'completed': completed,
+          'date': dateStr,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
       });
 
-      // Mettre à jour le streak si nécessaire
       if (newStatus) {
         await _updateStreak();
       }
     } catch (e) {
       setState(() {
-        _completionStatus[habit['id']] = !newStatus;
-        _errorMessage = 'Fehler beim Aktualisieren der Gewohnheit: $e';
+        _completionStatus[habitId] = !newStatus;
+        _updateProgress();
+        _errorMessage = 'Fehler beim Aktualisieren: $e';
       });
       debugPrint(_errorMessage);
     }
@@ -279,572 +215,585 @@ class _HabitsScreenState extends State<HabitsScreen> with TickerProviderStateMix
         });
       }
     } catch (e) {
-      debugPrint('Error updating streak: $e');
+      debugPrint('Fehler beim Aktualisieren des Streaks: $e');
+    }
+  }
+
+  Future<void> _addNewHabit() async {
+    final TextEditingController nameController = TextEditingController();
+    IconData selectedIcon = Icons.check_circle_outline;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2d3748),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Text(
+          'Neue Gewohnheit',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Name der Gewohnheit',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                filled: true,
+                fillColor: const Color(0xFF1a1a2e),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFF667eea)),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _buildIconOption(Icons.water_drop, selectedIcon, (icon) {
+                  setState(() => selectedIcon = icon);
+                }),
+                _buildIconOption(Icons.directions_walk, selectedIcon, (icon) {
+                  setState(() => selectedIcon = icon);
+                }),
+                _buildIconOption(Icons.nightlight_round, selectedIcon, (icon) {
+                  setState(() => selectedIcon = icon);
+                }),
+                _buildIconOption(Icons.phone_android_outlined, selectedIcon, (icon) {
+                  setState(() => selectedIcon = icon);
+                }),
+                _buildIconOption(Icons.self_improvement, selectedIcon, (icon) {
+                  setState(() => selectedIcon = icon);
+                }),
+                _buildIconOption(Icons.bedtime, selectedIcon, (icon) {
+                  setState(() => selectedIcon = icon);
+                }),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white.withOpacity(0.7),
+            ),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF667eea),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+            ),
+            onPressed: () async {
+              if (nameController.text.trim().isNotEmpty) {
+                Navigator.pop(context, {
+                  'name': nameController.text.trim(),
+                  'icon': selectedIcon,
+                });
+              }
+            },
+            child: const Text(
+              'Hinzufügen',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.all(20),
+      ),
+    ).then((value) async {
+      if (value != null) {
+        try {
+          final user = _auth.currentUser;
+          if (user != null) {
+            await _firestore
+                .collection('users')
+                .doc(user.uid)
+                .collection('habits')
+                .add({
+              'name': value['name'],
+              'iconCode': (value['icon'] as IconData).codePoint,
+              'createdAt': FieldValue.serverTimestamp(),
+            });
+            
+            await _loadHabits();
+          }
+        } catch (e) {
+          setState(() {
+            _errorMessage = 'Fehler beim Hinzufügen: $e';
+          });
+          debugPrint(_errorMessage);
+        }
+      }
+    });
+  }
+
+  Widget _buildIconOption(IconData icon, IconData selectedIcon, Function(IconData) onSelect) {
+    final isSelected = icon == selectedIcon;
+    
+    return GestureDetector(
+      onTap: () => onSelect(icon),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF667eea) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF667eea) : Colors.white.withOpacity(0.3),
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteHabit(String habitId, String habitName) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2d3748),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Text(
+          'Gewohnheit löschen',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Möchtest du die Gewohnheit "$habitName" wirklich löschen?',
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white.withOpacity(0.7),
+            ),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Löschen'),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.all(20),
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final user = _auth.currentUser;
+        if (user != null) {
+          await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .collection('habits')
+              .doc(habitId)
+              .delete();
+
+          // Aktualisiere die Liste
+          await _loadHabits();
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$habitName wurde gelöscht'),
+                backgroundColor: const Color(0xFF2d3748),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Fehler beim Löschen: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Fehler beim Löschen der Gewohnheit'),
+              backgroundColor: Colors.red.shade400,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      }
     }
   }
 
   @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth > 600;
-    
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _buildAppBar(),
-          SliverToBoxAdapter(
-            child: _isLoading
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(50),
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF667eea),
-                      ),
-                    ),
-                  )
-                : FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Transform.translate(
-                      offset: Offset(0, _slideAnimation.value),
-                      child: Padding(
-                        padding: EdgeInsets.all(isTablet ? 40 : 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildProgressHeader(isTablet),
-                            const SizedBox(height: 30),
-                            _buildStreakCard(isTablet),
-                            const SizedBox(height: 30),
-                            _buildHabitsList(isTablet),
-                            if (_habits.isEmpty) _buildEmptyState(isTablet),
-                            const SizedBox(height: 30),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+      backgroundColor: const Color(0xFF1A1A2E),
+      appBar: AppBar(
+        title: const Text(
+          'Meine Gewohnheiten',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          if (_errorMessage.isNotEmpty)
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.red.withOpacity(0.3),
-                  ),
-                ),
-                child: Text(
-                  _errorMessage,
-                  style: TextStyle(
-                    color: Colors.red.shade300,
-                    fontSize: 14,
-                  ),
-                ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF43e97b),
               ),
-            ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO: Implement add new habit
-        },
-        backgroundColor: const Color(0xFF667eea),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Neue Gewohnheit',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: true,
-      pinned: true,
-      backgroundColor: Colors.transparent,
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-            ],
-          ),
-        ),
-        child: const FlexibleSpaceBar(
-          title: Text(
-            'Meine Gewohnheiten',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-          ),
-          centerTitle: false,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressHeader(bool isTablet) {
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 30 : 25),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF43e97b).withOpacity(0.2),
-            const Color(0xFF38f9d7).withOpacity(0.2),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: const Color(0xFF43e97b).withOpacity(0.3),
-          width: 2,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Heute',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: isTablet ? 16 : 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    DateFormat('dd. MMMM yyyy').format(DateTime.now()),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isTablet ? 20 : 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF43e97b).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF43e97b).withOpacity(0.3),
-                  ),
-                ),
-                child: Row(
+            )
+          : RefreshIndicator(
+              onRefresh: _loadHabits,
+              color: const Color(0xFF43e97b),
+              backgroundColor: const Color(0xFF2d3748),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.check_circle_outline,
-                      color: const Color(0xFF43e97b),
-                      size: isTablet ? 24 : 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$_completedToday/$_totalHabits',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isTablet ? 18 : 16,
-                        fontWeight: FontWeight.bold,
+                    // Fortschrittsbereich
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF16213E),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Stack(
-            children: [
-              Container(
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                height: 8,
-                width: (MediaQuery.of(context).size.width - (isTablet ? 140 : 90)) *
-                    (_completionRate / 100),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF43e97b), Color(0xFF38f9d7)],
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF43e97b).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '${_completionRate.toStringAsFixed(1)}% geschafft',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: isTablet ? 16 : 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStreakCard(bool isTablet) {
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 30 : 25),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFfad0c4).withOpacity(0.2),
-            const Color(0xFFffd1ff).withOpacity(0.2),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: const Color(0xFFfad0c4).withOpacity(0.3),
-          width: 2,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFfad0c4), Color(0xFFffd1ff)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFfad0c4).withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.local_fire_department,
-              color: Colors.white,
-              size: isTablet ? 32 : 28,
-            ),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$_streakCount Tage Streak! 🔥',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isTablet ? 22 : 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Weiter so! Bleib am Ball und erreiche deine Ziele.',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: isTablet ? 16 : 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHabitsList(bool isTablet) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 20),
-          child: Text(
-            'Tägliche Gewohnheiten',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: isTablet ? 24 : 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        ..._habits.asMap().entries.map((entry) {
-          return AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(
-                  0,
-                  (1 - _animationController.value) * 100 * (entry.key + 1),
-                ),
-                child: Opacity(
-                  opacity: _animationController.value,
-                  child: _buildHabitCard(entry.value, isTablet),
-                ),
-              );
-            },
-          );
-        }).toList(),
-      ],
-    );
-  }
-
-  Widget _buildHabitCard(Map<String, dynamic> habit, bool isTablet) {
-    final bool isCompleted = habit['lastCompleted'] != null &&
-        (habit['lastCompleted'] as Timestamp).toDate().isAfter(
-              DateTime.now().subtract(const Duration(days: 1)),
-            );
-    final int streak = habit['streak'] ?? 0;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _toggleHabit(habit),
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: EdgeInsets.all(isTablet ? 25 : 20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  isCompleted
-                      ? const Color(0xFF43e97b).withOpacity(0.2)
-                      : const Color(0xFF2d3748),
-                  isCompleted
-                      ? const Color(0xFF38f9d7).withOpacity(0.1)
-                      : const Color(0xFF1a202c),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isCompleted
-                    ? const Color(0xFF43e97b).withOpacity(0.3)
-                    : Colors.white.withOpacity(0.1),
-                width: isCompleted ? 2 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isCompleted
-                      ? const Color(0xFF43e97b).withOpacity(0.2)
-                      : Colors.black.withOpacity(0.2),
-                  blurRadius: isCompleted ? 20 : 10,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(isTablet ? 16 : 14),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isCompleted
-                          ? [const Color(0xFF43e97b), const Color(0xFF38f9d7)]
-                          : [const Color(0xFF667eea), const Color(0xFF764ba2)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: (isCompleted
-                                ? const Color(0xFF43e97b)
-                                : const Color(0xFF667eea))
-                            .withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    habit['icon'] ?? Icons.check_circle_outline,
-                    size: isTablet ? 32 : 28,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              habit['name'] ?? '',
-                              style: TextStyle(
-                                fontSize: isTablet ? 20 : 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                          const Text(
+                            'Heute',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
                             ),
                           ),
-                          if (streak > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFfad0c4).withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFFfad0c4).withOpacity(0.3),
+                          const SizedBox(height: 8),
+                          Text(
+                            DateFormat('dd. MMMM yyyy', 'de_DE').format(DateTime.now()),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // Fortschrittsbalken
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: _progressPercentage,
+                              backgroundColor: Colors.white.withOpacity(0.1),
+                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF43e97b)),
+                              minHeight: 8,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${(_progressPercentage * 100).toInt()}% geschafft',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF43e97b).withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '${_completionStatus.values.where((v) => v).length}/${_habits.length}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF43e97b),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Streak-Anzeige
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF16213E).withOpacity(0.5),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6B6B).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.local_fire_department,
+                              color: Color(0xFFFF6B6B),
+                              size: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$_streakCount Tage Streak! 🔥',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Weiter so! Bleib am Ball und erreiche deine Ziele.',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Liste der Gewohnheiten
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Tägliche Gewohnheiten',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (_habits.isEmpty)
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Icons.local_fire_department,
-                                    color: const Color(0xFFfad0c4),
-                                    size: isTablet ? 16 : 14,
+                                    Icons.check_circle_outline,
+                                    size: 64,
+                                    color: Colors.white.withOpacity(0.3),
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(height: 16),
                                   Text(
-                                    '$streak',
+                                    'Keine Gewohnheiten vorhanden',
                                     style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: isTablet ? 14 : 12,
-                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
                                     ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Füge neue Gewohnheiten hinzu, um deine Ziele zu erreichen',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.5),
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),
-                            ),
+                            )
+                          else
+                            ..._habits.map((habit) => _buildHabitTile(habit)),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        habit['description'] ?? '',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: isTablet ? 16 : 14,
-                        ),
-                      ),
-                      if (habit['reminder'] != null) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              color: Colors.white.withOpacity(0.6),
-                              size: isTablet ? 16 : 14,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              habit['reminder'],
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.6),
-                                fontSize: isTablet ? 14 : 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isCompleted
-                        ? const Color(0xFF43e97b)
-                        : Colors.white.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isCompleted ? Icons.check : Icons.arrow_forward,
-                    color: Colors.white,
-                    size: isTablet ? 24 : 20,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addNewHabit,
+        backgroundColor: const Color(0xFF43e97b),
+        icon: const Icon(Icons.add),
+        label: const Text('Neue Gewohnheit'),
       ),
     );
   }
 
-  Widget _buildEmptyState(bool isTablet) {
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 40 : 30),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2d3748),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+  Widget _buildHabitTile(Map<String, dynamic> habit) {
+    final isCompleted = _completionStatus[habit['id']] ?? false;
+    
+    return Dismissible(
+      key: Key(habit['id']),
+      background: Container(
+        decoration: BoxDecoration(
+          color: Colors.red.shade400,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(
+          Icons.delete_outline,
+          color: Colors.white,
         ),
       ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.add_task,
-            size: isTablet ? 60 : 50,
-            color: Colors.white.withOpacity(0.5),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Keine Gewohnheiten vorhanden',
-            style: TextStyle(
-              fontSize: isTablet ? 22 : 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        _deleteHabit(habit['id'], habit['name']);
+      },
+      confirmDismiss: (direction) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2d3748),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Füge neue Gewohnheiten hinzu, um deine Ziele zu erreichen',
-            style: TextStyle(
-              fontSize: isTablet ? 16 : 14,
-              color: Colors.white.withOpacity(0.8),
+            title: const Text(
+              'Gewohnheit löschen',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            textAlign: TextAlign.center,
+            content: Text(
+              'Möchtest du die Gewohnheit "${habit['name']}" wirklich löschen?',
+              style: const TextStyle(
+                color: Colors.white,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white.withOpacity(0.7),
+                ),
+                child: const Text('Abbrechen'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade400,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Löschen'),
+              ),
+            ],
+            actionsPadding: const EdgeInsets.all(20),
           ),
-        ],
+        );
+      },
+      child: GestureDetector(
+        onLongPress: () => _deleteHabit(habit['id'], habit['name']),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Material(
+            color: Colors.transparent,
+            child: ListTile(
+              onTap: () => _toggleHabit(habit['id']),
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                habit['icon'],
+                color: isCompleted ? Colors.white : Colors.white54,
+                size: 24,
+              ),
+              title: Text(
+                habit['name'],
+                style: TextStyle(
+                  color: isCompleted ? Colors.white : Colors.white54,
+                  fontSize: 16,
+                ),
+              ),
+              trailing: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isCompleted ? const Color(0xFF43e97b) : Colors.white24,
+                    width: 2,
+                  ),
+                  color: isCompleted ? const Color(0xFF43e97b) : Colors.transparent,
+                ),
+                child: isCompleted
+                    ? const Icon(
+                        Icons.check,
+                        size: 16,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
