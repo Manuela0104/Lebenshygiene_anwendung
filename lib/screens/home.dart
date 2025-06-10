@@ -22,9 +22,8 @@ class _HomeScreenState extends State<Home> with TickerProviderStateMixin {
   
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const GoalSelectionScreen(),
-    const ProfileScreen(),
     const RemindersScreen(),
+    const ProfileScreen(),
   ];
 
   @override
@@ -71,24 +70,16 @@ class _HomeScreenState extends State<Home> with TickerProviderStateMixin {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
+              child: const Text(
                 'Abbrechen',
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                style: TextStyle(color: Colors.white70),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text(
-                  'Abmelden',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(
+                'Abmelden',
+                style: TextStyle(color: Colors.red),
               ),
             ),
           ],
@@ -97,23 +88,14 @@ class _HomeScreenState extends State<Home> with TickerProviderStateMixin {
 
       if (shouldSignOut == true) {
         await FirebaseAuth.instance.signOut();
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/');
-        }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Fehler beim Abmelden'),
-            backgroundColor: Colors.red.shade400,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Abmelden: $e'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
     }
   }
 
@@ -133,9 +115,8 @@ class _HomeScreenState extends State<Home> with TickerProviderStateMixin {
   Widget _buildCustomBottomNavBar() {
     final navItems = [
       {'icon': Icons.dashboard_outlined, 'activeIcon': Icons.dashboard, 'label': 'Dashboard'},
-      {'icon': Icons.flag_outlined, 'activeIcon': Icons.flag, 'label': 'Ziele'},
+      {'icon': Icons.notifications_outlined, 'activeIcon': Icons.notifications, 'label': 'Erinnerungen'},
       {'icon': Icons.person_outline, 'activeIcon': Icons.person, 'label': 'Profil'},
-      {'icon': Icons.notifications_outlined, 'activeIcon': Icons.notifications, 'label': 'Alarm'},
     ];
 
     return Container(
@@ -160,65 +141,30 @@ class _HomeScreenState extends State<Home> with TickerProviderStateMixin {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25),
-        child: Container(
-          height: 70,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            children: navItems.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isSelected = _selectedIndex == index;
-              
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => _onItemTapped(index),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: isSelected
-                          ? const LinearGradient(
-                              colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                            )
-                          : null,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFF667eea).withOpacity(0.4),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isSelected ? item['activeIcon'] as IconData : item['icon'] as IconData,
-                          color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
-                          size: 20,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item['label'] as String,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
-                            fontSize: 10,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.transparent,
+          selectedItemColor: const Color(0xFF667eea),
+          unselectedItemColor: Colors.white.withOpacity(0.5),
+          type: BottomNavigationBarType.fixed,
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
           ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.normal,
+            fontSize: 12,
+          ),
+          items: navItems.map((item) {
+            return BottomNavigationBarItem(
+              icon: Icon(item['icon'] as IconData),
+              activeIcon: Icon(item['activeIcon'] as IconData),
+              label: item['label'] as String,
+            );
+          }).toList(),
         ),
       ),
     );

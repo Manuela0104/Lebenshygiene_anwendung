@@ -1,22 +1,41 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Vérifie si l'utilisateur est authentifié
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Vérifie si l'utilisateur accède à ses propres données
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
     // Règles pour la collection users
     match /users/{userId} {
-      // L'utilisateur peut lire et écrire ses propres données
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
       
+      // Règles pour la sous-collection habits
+      match /habits/{habitId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Règles pour la sous-collection daily_status
+      match /daily_status/{date} {
+        allow read, write: if isOwner(userId);
+      }
+
       // Règles pour les sous-collections
       match /dailyData/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
       
       match /moodEntries/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
       
       match /actionHistory/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
     }
   }

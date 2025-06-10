@@ -587,7 +587,7 @@ class _GoalsProgressScreenState extends State<GoalsProgressScreen> with TickerPr
             final goalType = entry.key;
             final goalValue = entry.value.toDouble();
             final progress = (_todayProgress[goalType] ?? 0).toDouble();
-            final percentage = goalValue > 0 ? math.min(progress / goalValue, 1.0) : 0.0;
+            final percentage = goalValue > 0 ? math.min<double>(progress / goalValue, 1.0) : 0.0;
             
             return _buildGoalCard(
               goalType,
