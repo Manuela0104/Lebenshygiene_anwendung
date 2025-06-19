@@ -10,11 +10,12 @@ import 'sleep_counter_screen.dart';
 import 'calorie_counter_screen.dart';
 import 'habit_tracker_screen.dart';
 import 'mini_challenges_screen.dart';
-import 'trends_report_screen.dart';
 import 'enhanced_mood_tracker_screen.dart';
 import 'smart_reminders_screen.dart';
 import 'goal_selection_screen.dart';
 import 'habits_screen.dart';
+import 'advanced_analytics_screen.dart';
+import 'simple_reports_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -621,6 +622,31 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
             ),
           ],
         ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionCard(
+                'Erweiterte Analysen',
+                Icons.analytics,
+                const Color(0xFF43e97b),
+                () => Navigator.pushNamed(context, '/analytics'),
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: _buildQuickActionCard(
+                'Berichte',
+                Icons.assessment,
+                const Color(0xFFff9a9e),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SimpleReportsScreen()),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -795,15 +821,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         'onTap': () => Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => MiniChallengesScreen()),
-        ),
-      },
-      {
-        'title': 'Trends & Berichte',
-        'icon': Icons.trending_up,
-        'color': const Color(0xFF43e97b),
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const TrendsReportScreen()),
         ),
       },
       {

@@ -236,7 +236,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
         final customActivities = snapshot.docs.map((doc) => {
           'key': doc.id,
           'title': doc['title'],
-          'icon': IconData(doc['iconCode'], fontFamily: 'MaterialIcons'),
+          'icon': _getIconFromCode(doc['iconCode']),
           'color': Color(doc['color']),
           'gradient': [Color(doc['color']), Color(doc['color']).withOpacity(0.7)],
           'reminderHours': doc['reminderHours'],
@@ -1551,6 +1551,25 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
       return 'Vor ${difference.inHours} Stunden';
     } else {
       return DateFormat('dd.MM.yyyy HH:mm').format(lastTime);
+    }
+  }
+
+  IconData _getIconFromCode(int? iconCode) {
+    if (iconCode == null) return Icons.check_circle_outline;
+    
+    // Vordefinierte Icon-Zuordnungen für häufige Icons
+    switch (iconCode) {
+      case 0xe3c9: return Icons.water_drop;
+      case 0xe3c7: return Icons.directions_walk;
+      case 0xe3c8: return Icons.bedtime;
+      case 0xe3c6: return Icons.shower;
+      case 0xe3c5: return Icons.fitness_center;
+      case 0xe3c4: return Icons.restaurant;
+      case 0xe3c3: return Icons.book;
+      case 0xe3c2: return Icons.music_note;
+      case 0xe3c1: return Icons.brush;
+      case 0xe3c0: return Icons.self_improvement;
+      default: return Icons.check_circle_outline;
     }
   }
 }

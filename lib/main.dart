@@ -12,8 +12,11 @@ import 'screens/training_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/habit_tracker_screen.dart';
+import 'screens/advanced_analytics_screen.dart';
 import 'utils/firestore_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,129 +25,131 @@ void main() async {
   );
   await initializeDateFormatting('de_DE', null);
   //await uploadQuestionsToFirestore();
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    // Define the color palette
-    const Color primaryColor = Color(0xFFEC407A); // Slightly richer pink/rose
-    const Color secondaryColor = Color(0xFFAB47BC); // A complementary vibrant color (e.g., purple)
-    const Color accentColor = Color(0xFFFFB74D); // A vibrant orange/peach accent
-    const Color cardColor = Color(0xFFFFFFFF); // Pure white for cards
-    const Color backgroundColor = Color(0xFFFCE4EC); // Very light pink background
-    const Color textColorPrimary = Color(0xFF212121); // Dark grey for primary text
-    const Color textColorSecondary = Color(0xFF757575); // Medium grey for secondary text
-
-    // Define the text themes using Google Fonts
-    final textTheme = TextTheme(
-      displayLarge: GoogleFonts.poppins(fontSize: 96, fontWeight: FontWeight.w300, letterSpacing: -1.5, color: textColorPrimary),
-      displayMedium: GoogleFonts.poppins(fontSize: 60, fontWeight: FontWeight.w300, letterSpacing: -0.5, color: textColorPrimary),
-      displaySmall: GoogleFonts.poppins(fontSize: 48, fontWeight: FontWeight.w400, color: textColorPrimary),
-      headlineMedium: GoogleFonts.poppins(fontSize: 34, fontWeight: FontWeight.w400, letterSpacing: 0.25, color: textColorPrimary),
-      headlineSmall: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w400, color: textColorPrimary),
-      titleLarge: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 0.15, color: textColorPrimary),
-      titleMedium: GoogleFonts.lato(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.15, color: textColorPrimary), // Default for ListTile titles, etc.
-      titleSmall: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: textColorPrimary),
-      bodyLarge: GoogleFonts.lato(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5, color: textColorPrimary), // Default for body text
-      bodyMedium: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, color: textColorPrimary), // Default text
-      labelLarge: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25, color: Colors.white), // Default for button text
-      bodySmall: GoogleFonts.lato(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4, color: textColorSecondary), // Smaller text, hints, etc.
-      labelSmall: GoogleFonts.lato(fontSize: 10, fontWeight: FontWeight.w400, letterSpacing: 1.5, color: textColorSecondary), // Very small text
-    );
-
-    return MaterialApp(
-      title: 'Lebenshygiene App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // Use colorScheme to define the primary colors
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryColor, // Base color for the theme
-          primary: primaryColor,
-          secondary: secondaryColor,
-          surface: cardColor, // Use for cards and surfaces
-          background: backgroundColor, // Use for scaffold background
-          error: Colors.red, // Define an error color
-          onPrimary: Colors.white, // Text/icons on primary color
-          onSecondary: textColorPrimary, // Text/icons on secondary color
-          onSurface: textColorPrimary, // Text/icons on surface color
-          onBackground: textColorPrimary, // Text/icons on background color
-          onError: Colors.white, // Text/icons on error color
-          brightness: Brightness.light, // Light theme
-        ),
-        // Apply the custom text theme
-        textTheme: textTheme,
-
-        // Customize other theme properties
-        appBarTheme: AppBarTheme(
-          backgroundColor: primaryColor, // AppBar background color
-          foregroundColor: Colors.white, // AppBar text and icon color
-          centerTitle: true,
-          titleTextStyle: textTheme.titleLarge?.copyWith(color: Colors.white), // AppBar title text style
-        ),
-        cardTheme: CardTheme(
-          color: cardColor, // Card background color
-          elevation: 4.0, // Card elevation
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), // Rounded corners
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: cardColor, // Background color for input fields
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: textColorSecondary, width: 1.0), // Add a subtle border
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+      ],
+      child: MaterialApp(
+        title: 'Lebenshygiene-Anwendung',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.teal,
+          primaryColor: Colors.teal,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.teal,
+            brightness: Brightness.light,
           ),
-          focusedBorder: OutlineInputBorder(
-             borderRadius: BorderRadius.circular(12),
-             borderSide: BorderSide(color: primaryColor, width: 2.0), // Highlight focused border
+          useMaterial3: true,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.teal,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            centerTitle: true,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0), // Padding inside input fields
-          hintStyle: textTheme.bodyMedium?.copyWith(color: textColorSecondary), // Hint text style
-          labelStyle: textTheme.bodyMedium, // Label text style
-          prefixIconColor: textColorSecondary, // Color for prefix icons
-          suffixIconColor: textColorSecondary, // Color for suffix icons
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor, // Button background color
-            foregroundColor: Colors.white, // Button text color
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)), // Rounded corners
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Button padding
-            textStyle: textTheme.labelLarge, // Button text style
-            elevation: 4.0, // Button elevation
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.teal, width: 2),
+            ),
+          ),
+          textTheme: TextTheme(
+            displayLarge: GoogleFonts.poppins(fontSize: 96, fontWeight: FontWeight.w300, letterSpacing: -1.5, color: Colors.teal),
+            displayMedium: GoogleFonts.poppins(fontSize: 60, fontWeight: FontWeight.w300, letterSpacing: -0.5, color: Colors.teal),
+            displaySmall: GoogleFonts.poppins(fontSize: 48, fontWeight: FontWeight.w400, color: Colors.teal),
+            headlineMedium: GoogleFonts.poppins(fontSize: 34, fontWeight: FontWeight.w400, letterSpacing: 0.25, color: Colors.teal),
+            headlineSmall: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w400, color: Colors.teal),
+            titleLarge: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 0.15, color: Colors.teal),
+            titleMedium: GoogleFonts.lato(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.15, color: Colors.teal),
+            titleSmall: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: Colors.teal),
+            bodyLarge: GoogleFonts.lato(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5, color: Colors.teal),
+            bodyMedium: GoogleFonts.lato(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, color: Colors.teal),
+            labelLarge: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25, color: Colors.white),
+            bodySmall: GoogleFonts.lato(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4, color: Colors.teal),
+            labelSmall: GoogleFonts.lato(fontSize: 10, fontWeight: FontWeight.w400, letterSpacing: 1.5, color: Colors.teal),
+          ),
+          cardTheme: CardTheme(
+            color: Colors.white,
+            elevation: 4.0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),
-        // You can add more theme customizations here (e.g., buttonTheme, iconTheme, etc.)
-
-        useMaterial3: true,
-      ),
-      initialRoute: '/',
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          if (snapshot.hasData) {
-            return const Home();
-          }
-          
-          return const LoginScreen();
+        initialRoute: '/',
+        home: AuthWrapper(),
+        routes: {
+          '/home': (context) => const Home(),
+          '/login': (context) => const LoginScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/fragebogen': (context) => const QuestionnaireScreen(),
+          '/nutrition': (context) => const NutritionScreen(),
+          '/training': (context) => const TrainingScreen(),
+          '/habits': (context) => const HabitTrackerScreen(),
+          '/analytics': (context) => const AdvancedAnalyticsScreen(),
         },
       ),
-      routes: {
-        '/home': (context) => const Home(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/fragebogen': (context) => const QuestionnaireScreen(),
-        '/nutrition': (context) => const NutritionScreen(),
-        '/training': (context) => const TrainingScreen(),
-        '/habits': (context) => const HabitTrackerScreen(),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 120,
+                    height: 120,
+                  ),
+                  SizedBox(height: 24),
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Laden...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data != null) {
+          return const Home();
+        }
+
+        return const LoginScreen();
       },
     );
   }

@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dashboard_screen.dart';
 import 'profile_screen.dart';
 import 'reminders_screen.dart';
-import 'trends_report_screen.dart';
 import 'goals_progress_screen.dart';
 import 'enhanced_mood_tracker_screen.dart';
 import 'goal_selection_screen.dart';

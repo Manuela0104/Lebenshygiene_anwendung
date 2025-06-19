@@ -50,6 +50,7 @@ dependencies:
   vector_math: ^2.1.4
   pedometer: ^3.0.0
   js: ^0.6.7
+  provider: ^6.1.1
 
 dev_dependencies:
   flutter_test:
