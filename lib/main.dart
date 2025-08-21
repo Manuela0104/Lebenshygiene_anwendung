@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'firebase_options.dart';
 import 'screens/home.dart';
 import 'screens/auth_screen.dart';
 import 'screens/profile_screen.dart';
-
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/habit_tracker_screen.dart';
@@ -17,7 +16,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'utils/theme_provider.dart';
-import 'utils/language_provider.dart';
+
 
 /// Hauptfunktion der Lebenshygiene-Anwendung
 /// 
@@ -25,11 +24,14 @@ import 'utils/language_provider.dart';
 /// und startet die Hauptanwendung.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await initializeDateFormatting('de_DE', null);
-  runApp(MyApp());
+      await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    
+    // Initialiser le formatage des dates pour l'allemand
+    await initializeDateFormatting('de_DE', null);
+
+    runApp(MyApp());
 }
 
 /// Hauptanwendungs-Widget mit Provider-Integration
@@ -45,26 +47,14 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+
       ],
-      child: Consumer2<ThemeProvider, LanguageProvider>(
-        builder: (context, themeProvider, languageProvider, child) {
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'Lebenshygiene-Anwendung',
             debugShowCheckedModeBanner: false,
-            locale: languageProvider.locale,
-            supportedLocales: const [
-              Locale('de', 'DE'),
-              Locale('en', 'US'),
-              Locale('fr', 'FR'),
-              Locale('es', 'ES'),
-              Locale('it', 'IT'),
-            ],
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
+
             themeMode: themeProvider.themeMode,
             theme: themeProvider.getLightTheme(),
             darkTheme: themeProvider.getDarkTheme(),

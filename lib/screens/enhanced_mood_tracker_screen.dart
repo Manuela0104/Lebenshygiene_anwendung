@@ -3,9 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'dart:math' as math;
-import '../utils/language_provider.dart';
 import '../utils/motivational_quotes.dart';
 
 /// Erweiterter Stimmungs-Tracker-Bildschirm mit zusätzlichen Funktionen
@@ -90,13 +88,11 @@ class _EnhancedMoodTrackerScreenState extends State<EnhancedMoodTrackerScreen> w
   }
 
   Future<void> _loadQuote() async {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
-    final languageCode = languageProvider.locale.languageCode;
     final isEnabled = await MotivationalQuotes.isQuotesEnabled();
     
     if (isEnabled) {
       setState(() {
-        _currentQuote = MotivationalQuotes.getQuoteOfTheDay(languageCode);
+        _currentQuote = MotivationalQuotes.getQuoteOfTheDay('de'); // Allemand par défaut
       });
     }
   }
