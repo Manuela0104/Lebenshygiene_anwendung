@@ -8,6 +8,18 @@ import '../services/report_service.dart';
 import '../services/gamification_service.dart';
 import 'dart:math' as math;
 
+/// Erweiterte Analysen-Bildschirm für detaillierte Gesundheitsstatistiken
+/// 
+/// Bietet umfassende Funktionalitäten für:
+/// - Detaillierte Gesundheitsberichte und -analysen
+/// - Gamification-Statistiken und Badges
+/// - Tab-basierte Navigation zwischen verschiedenen Analysetypen
+/// - Integration mit Report- und Gamification-Services
+/// - Wöchentliche Berichtsgenerierung
+/// - Fortschrittsverfolgung und Erfolgsmetriken
+/// 
+/// Der Bildschirm bietet eine zentrale Plattform für
+/// alle erweiterten Analysen und Statistiken.
 class AdvancedAnalyticsScreen extends StatefulWidget {
   const AdvancedAnalyticsScreen({super.key});
 
@@ -15,6 +27,14 @@ class AdvancedAnalyticsScreen extends StatefulWidget {
   State<AdvancedAnalyticsScreen> createState() => _AdvancedAnalyticsScreenState();
 }
 
+/// State-Klasse für den erweiterten Analysen-Bildschirm
+/// 
+/// Verwaltet Berichtsdaten, Gamification-Informationen und Tab-Navigation.
+/// Implementiert Service-Integration für Berichte und Gamification,
+/// Tab-Controller für verschiedene Analysetypen,
+/// Paralleles Laden von Daten für optimale Performance.
+/// Bietet eine umfassende Übersicht über alle
+/// Gesundheitsmetriken und Erfolge.
 class _AdvancedAnalyticsScreenState extends State<AdvancedAnalyticsScreen>
     with TickerProviderStateMixin {
   final ReportService _reportService = ReportService();

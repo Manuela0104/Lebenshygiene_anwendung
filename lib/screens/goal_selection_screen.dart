@@ -2,6 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// Zielauswahl-Bildschirm für die Personalisierung der Anwendung
+/// 
+/// Bietet Funktionalitäten für:
+/// - Auswahl aus vordefinierten Gesundheitszielen
+/// - Kategorisierte Ziele (Organisation, Wohlbefinden, Hygiene, Fortschritt)
+/// - Detaillierte Beschreibungen und Features für jedes Ziel
+/// - Personalisierung der Anwendung basierend auf Benutzerzielen
+/// - Integration mit dem Benutzerprofil für zielgerichtete Funktionen
+/// 
+/// Der Bildschirm hilft Benutzern, ihre Gesundheitsziele zu definieren
+/// und die Anwendung entsprechend anzupassen.
 class GoalSelectionScreen extends StatefulWidget {
   const GoalSelectionScreen({super.key});
 
@@ -9,6 +20,13 @@ class GoalSelectionScreen extends StatefulWidget {
   State<GoalSelectionScreen> createState() => _GoalSelectionScreenState();
 }
 
+/// State-Klasse für den Zielauswahl-Bildschirm
+/// 
+/// Verwaltet Zielauswahl, Animationen und Benutzerinteraktionen.
+/// Implementiert Firestore-Integration für Zielspeicherung,
+/// Animationen für Fade und Slide-Effekte.
+/// Bietet eine intuitive Benutzeroberfläche für die
+/// Zielauswahl und -personalisierung.
 class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

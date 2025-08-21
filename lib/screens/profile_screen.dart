@@ -10,6 +10,17 @@ import 'reminders_screen.dart';
 import 'goal_selection_screen.dart';
 import 'personalization_screen.dart';
 
+/// Profilbildschirm für Benutzereinstellungen und -verwaltung
+/// 
+/// Bietet umfassende Funktionalitäten für:
+/// - Persönliche Daten (Name, Alter, Geschlecht, Standort)
+/// - Körpermaße und BMI-Berechnung
+/// - Gesundheitsziele (Kalorien, Schlaf, Wasser, Schritte)
+/// - Profilbild-Upload und -verwaltung
+/// - Navigation zu anderen Einstellungsbildschirmen
+/// 
+/// Integriert Firebase für Datenpersistierung und
+/// bietet eine moderne UI mit Animationen.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -17,6 +28,12 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+/// State-Klasse für den Profilbildschirm
+/// 
+/// Verwaltet alle Benutzerdaten, Formulareingaben und Animationen.
+/// Implementiert Firebase-Integration für Datenverwaltung,
+/// Bild-Upload-Funktionalität und BMI-Berechnungen.
+/// Bietet verschiedene Animationen für eine ansprechende Benutzererfahrung.
 class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();

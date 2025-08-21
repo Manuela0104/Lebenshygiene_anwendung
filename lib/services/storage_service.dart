@@ -3,6 +3,18 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Speicherservice für die Verwaltung von Dateien und Bildern
+/// 
+/// Bietet zentrale Funktionalitäten für:
+/// - Profilbild-Auswahl aus der Galerie
+/// - Profilbild-Aufnahme mit der Kamera
+/// - Upload von Bildern zu Firebase Storage
+/// - Löschen von Dateien aus dem Cloud Storage
+/// - Automatische Bildoptimierung und -komprimierung
+/// - Sichere Dateiverwaltung mit Benutzer-spezifischen Pfaden
+/// 
+/// Der Service behandelt alle datei- und speicherbezogenen
+/// Operationen für die Anwendung.
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;

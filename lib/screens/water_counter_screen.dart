@@ -3,6 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+/// Wasserzähler-Bildschirm für die Überwachung der täglichen Wasseraufnahme
+/// 
+/// Bietet Funktionalitäten für:
+/// - Tägliche Wasseraufnahme in Gläsern verfolgen
+/// - Personalisierte Wasserziele basierend auf Benutzerprofil
+/// - Visuelle Darstellung der Wasseraufnahme mit Glasmotiv
+/// - Fortschrittsanzeige und Statistiken
+/// - Integration mit dem täglichen Daten-Tracking
+/// 
+/// Der Bildschirm verwendet eine Glasmotiv-Metapher (250ml pro Glas)
+/// und speichert alle Daten in Firestore.
 class WaterCounterScreen extends StatefulWidget {
   const WaterCounterScreen({super.key});
 
@@ -10,6 +21,13 @@ class WaterCounterScreen extends StatefulWidget {
   State<WaterCounterScreen> createState() => _WaterCounterScreenState();
 }
 
+/// State-Klasse für den Wasserzähler-Bildschirm
+/// 
+/// Verwaltet Wasseraufnahme-Daten, Ziele und Animationen.
+/// Implementiert Firestore-Integration für Datenpersistierung,
+/// Animationen für Fade, Scale und Ripple-Effekte.
+/// Bietet eine intuitive Benutzeroberfläche mit visuellen
+/// Wasserelementen und Fortschrittsanzeigen.
 class _WaterCounterScreenState extends State<WaterCounterScreen> with TickerProviderStateMixin {
   int _glasses = 0;
   int _maxGlasses = 8;

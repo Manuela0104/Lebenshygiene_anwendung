@@ -3,6 +3,16 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'home.dart';
 
+/// Authentifizierungsbildschirm für Benutzeranmeldung und -registrierung
+/// 
+/// Bietet eine Tab-basierte Benutzeroberfläche mit:
+/// - Anmeldeformular für bestehende Benutzer
+/// - Registrierungsformular für neue Benutzer
+/// - Integration mit dem AuthService für Firebase-Authentifizierung
+/// - Moderne UI mit Gradienten und Animationen
+/// 
+/// Der Bildschirm verwaltet den Authentifizierungsstatus und
+/// leitet erfolgreich angemeldete Benutzer zum Home-Bildschirm weiter.
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -10,6 +20,11 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
+/// State-Klasse für den Authentifizierungsbildschirm
+/// 
+/// Verwaltet Tab-Controller, Formulareingaben und Authentifizierungslogik.
+/// Implementiert Formularvalidierung, Fehlerbehandlung und
+/// Ladezustände während der Authentifizierung.
 class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();

@@ -3,6 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+/// Erinnerungen-Bildschirm für die Verwaltung von Gesundheitserinnerungen
+/// 
+/// Bietet Funktionalitäten für:
+/// - Anzeige aller gesetzten Erinnerungen
+/// - Erstellung neuer Erinnerungen mit Zeitplanung
+/// - Aktivierung/Deaktivierung von Erinnerungen
+/// - Bearbeitung und Löschung bestehender Erinnerungen
+/// - Sortierung nach Zeit und Status
+/// - Integration mit dem täglichen Erinnerungssystem
+/// 
+/// Der Bildschirm hilft Benutzern, ihre Gesundheitsroutinen
+/// durch zeitgesteuerte Erinnerungen zu strukturieren.
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
 
@@ -10,6 +22,13 @@ class RemindersScreen extends StatefulWidget {
   State<RemindersScreen> createState() => _RemindersScreenState();
 }
 
+/// State-Klasse für den Erinnerungen-Bildschirm
+/// 
+/// Verwaltet Erinnerungsdaten, Animationen und Benutzerinteraktionen.
+/// Implementiert Firestore-Integration für Datenpersistierung,
+/// Animationen für Fade und Scale-Effekte.
+/// Bietet eine übersichtliche Darstellung aller Erinnerungen
+/// mit Bearbeitungsfunktionalitäten.
 class _RemindersScreenState extends State<RemindersScreen> with TickerProviderStateMixin {
   List<Map<String, dynamic>> _reminders = [];
   bool _isLoading = true;

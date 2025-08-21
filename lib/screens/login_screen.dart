@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// Anmeldebildschirm für bestehende Benutzer
+/// 
+/// Bietet Funktionalitäten für:
+/// - E-Mail- und Passwort-basierte Anmeldung
+/// - Firebase-Authentifizierung
+/// - Fehlerbehandlung für verschiedene Anmeldefehler
+/// - Animierte Benutzeroberfläche
+/// - Validierung der Eingabefelder
+/// - Weiterleitung zum Home-Bildschirm nach erfolgreicher Anmeldung
+/// 
+/// Der Bildschirm ist der erste Kontaktpunkt für
+/// bestehende Benutzer der Anwendung.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -8,6 +20,13 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+/// State-Klasse für den Anmeldebildschirm
+/// 
+/// Verwaltet Anmeldedaten, Validierung und Authentifizierung.
+/// Implementiert Firebase-Auth-Integration,
+/// Animationen für Fade und Slide-Effekte,
+/// Umfassende Fehlerbehandlung für verschiedene
+/// Anmeldestatus und -fehler.
 class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();

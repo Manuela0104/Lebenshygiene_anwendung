@@ -3,6 +3,17 @@ import 'package:provider/provider.dart';
 import '../utils/theme_provider.dart';
 import '../utils/motivational_quotes.dart';
 
+/// Personalisierungs-Bildschirm für Anpassungen der Benutzeroberfläche
+/// 
+/// Bietet Funktionalitäten für:
+/// - Theme-Modus-Auswahl (Hell, Dunkel, System)
+/// - Farbschema-Personalisierung
+/// - Einstellungen für motivierende Zitate
+/// - Integration mit dem Theme-Provider
+/// - Speicherung von Benutzereinstellungen
+/// 
+/// Der Bildschirm ermöglicht es Benutzern, die Anwendung
+/// nach ihren persönlichen Vorlieben anzupassen.
 class PersonalizationScreen extends StatefulWidget {
   const PersonalizationScreen({super.key});
 
@@ -10,6 +21,13 @@ class PersonalizationScreen extends StatefulWidget {
   State<PersonalizationScreen> createState() => _PersonalizationScreenState();
 }
 
+/// State-Klasse für den Personalisierungs-Bildschirm
+/// 
+/// Verwaltet Theme-Einstellungen, Zitat-Einstellungen und Benutzerpräferenzen.
+/// Implementiert Provider-Integration für Theme-Management,
+/// SharedPreferences für Einstellungsspeicherung.
+/// Bietet eine intuitive Benutzeroberfläche für alle
+/// Personalisierungsoptionen.
 class _PersonalizationScreenState extends State<PersonalizationScreen> {
   bool _quotesEnabled = true;
   String _currentQuote = '';

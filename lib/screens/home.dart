@@ -8,6 +8,15 @@ import 'enhanced_mood_tracker_screen.dart';
 import 'goal_selection_screen.dart';
 import 'smart_reminders_screen.dart';
 
+/// Hauptbildschirm der Anwendung, der als Container für die Navigation dient
+/// 
+/// Diese Klasse implementiert eine Bottom-Navigation mit drei Hauptbereichen:
+/// - Dashboard: Übersicht über den Gesundheitszustand
+/// - Erinnerungen: Verwaltung von Gesundheitserinnerungen
+/// - Profil: Benutzereinstellungen und -informationen
+/// 
+/// Die Klasse verwaltet auch die Animationen zwischen den Bildschirmen
+/// und bietet eine Abmelde-Funktionalität.
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -15,6 +24,11 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeScreenState();
 }
 
+/// State-Klasse für den Home-Bildschirm
+/// 
+/// Verwaltet den aktuell ausgewählten Tab, Animationen und
+/// die Navigation zwischen den verschiedenen Bildschirmen.
+/// Implementiert auch die Abmelde-Logik mit Bestätigungsdialog.
 class _HomeScreenState extends State<Home> with TickerProviderStateMixin {
   int _selectedIndex = 0;
   late AnimationController _animationController;

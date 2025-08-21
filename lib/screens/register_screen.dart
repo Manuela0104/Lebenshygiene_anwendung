@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Registrierungsbildschirm für neue Benutzer
+/// 
+/// Bietet Funktionalitäten für:
+/// - Benutzerregistrierung mit E-Mail und Passwort
+/// - Erfassung von Vor- und Nachname
+/// - Firebase-Authentifizierung und Firestore-Integration
+/// - Formularvalidierung und Fehlerbehandlung
+/// - Animierte Benutzeroberfläche
+/// - Weiterleitung zur Zielauswahl nach erfolgreicher Registrierung
+/// 
+/// Der Bildschirm ist der Einstiegspunkt für neue Benutzer
+/// und erstellt automatisch ein Benutzerprofil in der Datenbank.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -9,6 +21,13 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
+/// State-Klasse für den Registrierungsbildschirm
+/// 
+/// Verwaltet Registrierungsdaten, Formularvalidierung und Authentifizierung.
+/// Implementiert Firebase-Auth und Firestore-Integration,
+/// Animationen für Fade und Slide-Effekte,
+/// Umfassende Fehlerbehandlung und Benutzerprofil-Erstellung.
+/// Bietet eine benutzerfreundliche Registrierungserfahrung.
 class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _auth = FirebaseAuth.instance;

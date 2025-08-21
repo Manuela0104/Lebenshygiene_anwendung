@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Sprach-Provider für die Verwaltung von Mehrsprachigkeit in der App
+/// 
+/// Bietet zentrale Funktionalitäten für:
+/// - Sprach-Auswahl aus verfügbaren Lokalisierungen
+/// - Unterstützung für Deutsch, Englisch, Französisch, Spanisch und Italienisch
+/// - Persistente Speicherung der gewählten Sprache
+/// - Automatisches Laden der gespeicherten Spracheinstellungen
+/// - Change Notifier für sofortige UI-Updates bei Sprachwechsel
+/// - Einfache Sprachidentifikation und -verwaltung
+/// 
+/// Der Provider ermöglicht Benutzern die Verwendung der App
+/// in ihrer bevorzugten Sprache mit nahtlosem Wechsel.
 class LanguageProvider extends ChangeNotifier {
   static const String _languageKey = 'language_code';
   

@@ -3,6 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+/// Schlafzähler-Bildschirm für die Überwachung der täglichen Schlafdauer
+/// 
+/// Bietet Funktionalitäten für:
+/// - Tägliche Schlafdauer in Stunden verfolgen
+/// - Personalisierte Schlafziele basierend auf Benutzerprofil
+/// - Visuelle Darstellung der Schlafqualität
+/// - Fortschrittsanzeige und Statistiken
+/// - Integration mit dem täglichen Daten-Tracking
+/// 
+/// Der Bildschirm verwendet Schlaf-bezogene Motive und
+/// speichert alle Daten in Firestore.
 class SleepCounterScreen extends StatefulWidget {
   const SleepCounterScreen({super.key});
 
@@ -10,6 +21,13 @@ class SleepCounterScreen extends StatefulWidget {
   State<SleepCounterScreen> createState() => _SleepCounterScreenState();
 }
 
+/// State-Klasse für den Schlafzähler-Bildschirm
+/// 
+/// Verwaltet Schlafdaten, Ziele und verschiedene Animationen.
+/// Implementiert Firestore-Integration für Datenpersistierung,
+/// Animationen für Fade, Scale und Pulse-Effekte.
+/// Bietet eine beruhigende Benutzeroberfläche mit
+/// Schlaf-bezogenen visuellen Elementen.
 class _SleepCounterScreenState extends State<SleepCounterScreen> with TickerProviderStateMixin {
   double _hours = 0.0;
   double _sleepGoal = 8.0;

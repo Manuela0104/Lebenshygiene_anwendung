@@ -4,6 +4,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+/// Trends-Bildschirm für die Visualisierung von Gesundheitsdaten
+/// 
+/// Bietet umfassende Funktionalitäten für:
+/// - Zeitraum-basierte Datenanalyse (Woche, Monat, Jahr)
+/// - Chart-basierte Visualisierung verschiedener Metriken
+/// - Trend-Analyse für Schritte, Stimmung, Gewicht und Schlaf
+/// - Durchschnittsberechnungen und Statistiken
+/// - Interaktive Diagramme für bessere Datenverständnis
+/// - Integration mit dem täglichen Daten-Tracking
+/// 
+/// Der Bildschirm hilft Benutzern, langfristige Trends
+/// in ihren Gesundheitsdaten zu erkennen.
 class TrendsScreen extends StatefulWidget {
   const TrendsScreen({super.key});
 
@@ -11,6 +23,14 @@ class TrendsScreen extends StatefulWidget {
   State<TrendsScreen> createState() => _TrendsScreenState();
 }
 
+/// State-Klasse für den Trends-Bildschirm
+/// 
+/// Verwaltet Trenddaten, Zeitraum-Auswahl und Chart-Visualisierung.
+/// Implementiert Firestore-Integration für Datenabfrage,
+/// Flutter-Charts für Datenvisualisierung,
+/// Zeitraum-basierte Datenfilterung und -aggregation.
+/// Bietet eine umfassende Trend-Analyse aller
+/// wichtigen Gesundheitsmetriken.
 class _TrendsScreenState extends State<TrendsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

@@ -4,6 +4,19 @@ import 'package:intl/intl.dart';
 import '../models/gamification_model.dart';
 import 'dart:math' as math;
 
+/// Gamification-Service für Motivations- und Belohnungssysteme
+/// 
+/// Bietet umfassende Funktionalitäten für:
+/// - Benutzerlevel und Punktesystem-Verwaltung
+/// - Badge-System mit verschiedenen Kategorien
+/// - Achievement-Tracking und -freischaltung
+/// - Streak-Zählung für kontinuierliche Aktivitäten
+/// - Challenge- und Gewohnheits-Belohnungen
+/// - Leaderboard- und Ranking-Funktionen
+/// - Personalisierte Belohnungsberechnung
+/// 
+/// Der Service motiviert Benutzer durch spielerische Elemente
+/// und fördert kontinuierliches Engagement mit der App.
 class GamificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;

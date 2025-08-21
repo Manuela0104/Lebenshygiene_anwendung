@@ -4,6 +4,18 @@ import 'package:intl/intl.dart';
 import '../models/report_model.dart';
 import 'dart:math' as math;
 
+/// Berichtsservice für die Generierung und Verwaltung von Gesundheitsberichten
+/// 
+/// Bietet zentrale Funktionalitäten für:
+/// - Wöchentliche und monatliche Berichtsgenerierung
+/// - Sammlung und Aggregation von Gesundheitsdaten
+/// - Trend-Analyse und Statistikberechnung
+/// - Personalisierte Gesundheitsempfehlungen
+/// - Integration mit Firestore für Datenpersistierung
+/// - Automatische Bewertung des Gesundheitsstatus
+/// 
+/// Der Service generiert intelligente Berichte basierend auf
+/// gesammelten Benutzerdaten und bietet Einblicke in Gesundheitstrends.
 class ReportService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;

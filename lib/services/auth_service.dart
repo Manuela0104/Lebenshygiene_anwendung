@@ -2,6 +2,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
+/// Authentifizierungsservice für die Verwaltung von Benutzeranmeldungen
+/// 
+/// Bietet zentrale Funktionalitäten für:
+/// - Benutzerregistrierung mit E-Mail und Passwort
+/// - Benutzeranmeldung und -abmeldung
+/// - Passwort-Reset-Funktionalität
+/// - Integration mit Firebase Auth und Firestore
+/// - Automatische Benutzerprofil-Erstellung bei Registrierung
+/// - Change Notifier für State Management
+/// 
+/// Der Service dient als zentrale Schnittstelle für alle
+/// authentifizierungsbezogenen Operationen in der App.
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

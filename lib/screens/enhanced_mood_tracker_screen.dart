@@ -8,6 +8,17 @@ import 'dart:math' as math;
 import '../utils/language_provider.dart';
 import '../utils/motivational_quotes.dart';
 
+/// Erweiterter Stimmungs-Tracker-Bildschirm mit zusätzlichen Funktionen
+/// 
+/// Bietet erweiterte Funktionalitäten für:
+/// - Detaillierte Stimmungsverfolgung mit Journaling
+/// - Stimmungsstatistiken und Trends mit Charts
+/// - Entspannungsübungen (Atemübungen, Meditation, Dankbarkeit)
+/// - Motivierende Zitate in verschiedenen Sprachen
+/// - Erweiterte Datenanalyse und -visualisierung
+/// 
+/// Der Bildschirm integriert verschiedene Wellness-Tools
+/// und bietet eine umfassende Stimmungsüberwachung.
 class EnhancedMoodTrackerScreen extends StatefulWidget {
   const EnhancedMoodTrackerScreen({super.key});
 
@@ -15,6 +26,13 @@ class EnhancedMoodTrackerScreen extends StatefulWidget {
   State<EnhancedMoodTrackerScreen> createState() => _EnhancedMoodTrackerScreenState();
 }
 
+/// State-Klasse für den erweiterten Stimmungs-Tracker-Bildschirm
+/// 
+/// Verwaltet erweiterte Stimmungsdaten, Übungen und Animationen.
+/// Implementiert Firestore-Integration, Chart-Visualisierung,
+/// Atemübungen-Animationen und mehrsprachige Zitate.
+/// Bietet eine umfassende Wellness-Erfahrung mit
+/// verschiedenen Entspannungstechniken.
 class _EnhancedMoodTrackerScreenState extends State<EnhancedMoodTrackerScreen> with TickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

@@ -1,6 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math' as math;
 
+/// Level-Datenmodell für das Gamification-System
+/// 
+/// Definiert die Struktur für:
+/// - Level-Nummer und Titel
+/// - Beschreibung der Level-Anforderungen
+/// - Erforderliche Punkte für Level-Aufstieg
+/// - Freigeschaltete Features pro Level
+/// - Spezielle Belohnungen für besondere Level
+/// - Serialisierung für Datenpersistierung
+/// 
+/// Das Modell strukturiert das Fortschrittssystem
+/// und motiviert Benutzer durch klar definierte Ziele.
 class Level {
   final int level;
   final String title;
@@ -41,6 +53,19 @@ class Level {
   }
 }
 
+/// Benutzerfortschritt-Datenmodell für das Gamification-System
+/// 
+/// Verwaltet umfassende Informationen zu:
+/// - Aktuelles Level und Punktestand
+/// - Fortschritt zum nächsten Level
+/// - Streak-Zählungen für kontinuierliche Aktivität
+/// - Abgeschlossene Gewohnheiten und Challenges
+/// - Freigeschaltete Badges und Erfolge
+/// - Kategorie-spezifische Punkte
+/// - Firestore-Integration für Datensynchronisation
+/// 
+/// Das Modell ist die zentrale Datenstruktur für
+/// alle gamification-bezogenen Benutzeraktivitäten.
 class UserProgress {
   final String userId;
   final int currentLevel;
@@ -124,6 +149,19 @@ class UserProgress {
   }
 }
 
+/// Badge-Datenmodell für das Belohnungssystem
+/// 
+/// Definiert die Struktur für:
+/// - Eindeutige Badge-Identifikation und Name
+/// - Beschreibung der Badge-Anforderungen
+/// - Icon-Pfad für visuelle Darstellung
+/// - Erforderliche Punkte für Badge-Freischaltung
+/// - Kategorie-Zuordnung (Wasser, Schritte, Schlaf, etc.)
+/// - Freischaltungsstatus und -zeitpunkt
+/// - Firestore-Integration für Datensynchronisation
+/// 
+/// Das Modell ermöglicht ein flexibles Badge-System
+/// für verschiedene Gesundheitsaktivitäten.
 class Badge {
   final String id;
   final String name;
@@ -172,6 +210,19 @@ class Badge {
   }
 }
 
+/// Achievement-Datenmodell für das Erfolgssystem
+/// 
+/// Definiert die Struktur für:
+/// - Eindeutige Achievement-Identifikation und Titel
+/// - Detaillierte Beschreibung der Erfolgsanforderungen
+/// - Punktebelohnung für Achievement-Abschluss
+/// - Kategorie-Zuordnung für Organisation
+/// - Flexible Kriterien für verschiedene Erfolgstypen
+/// - Abschlussstatus und -zeitpunkt
+/// - Firestore-Integration für Fortschrittsverfolgung
+/// 
+/// Das Modell ermöglicht ein vielseitiges Achievement-System
+/// für langfristige Benutzer-Motivation.
 class Achievement {
   final String id;
   final String title;

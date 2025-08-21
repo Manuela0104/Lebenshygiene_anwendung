@@ -4,6 +4,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+/// Challenge-Detail-Bildschirm für detaillierte Informationen zu Herausforderungen
+/// 
+/// Bietet Funktionalitäten für:
+/// - Detaillierte Anzeige von Challenge-Informationen
+/// - Auflistung aller enthaltenen Gewohnheiten
+/// - Start-Funktionalität für neue Challenges
+/// - Integration mit dem Challenge-Management-System
+/// - Übersichtliche Darstellung der Challenge-Anforderungen
+/// 
+/// Der Bildschirm dient als Informationszentrum für
+/// Benutzer, die mehr über eine Challenge erfahren möchten.
 class ChallengeDetailScreen extends StatelessWidget {
   final Map<String, dynamic> challenge;
   final List<String> challengeHabits;

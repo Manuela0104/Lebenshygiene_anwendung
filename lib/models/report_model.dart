@@ -1,5 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Personalisiertes Berichts-Datenmodell für Gesundheitsberichte
+/// 
+/// Definiert die Struktur für:
+/// - Eindeutige Berichts-Identifikation
+/// - Benutzer-Zuordnung und Zeitraum-Definition
+/// - Flexible Metriken-Speicherung für verschiedene Gesundheitsdaten
+/// - Lesestatus für Benutzererfahrung
+/// - Firestore-Integration für Datenserialisierung
+/// - Unterstützung für wöchentliche und monatliche Berichte
+/// 
+/// Das Modell ermöglicht die strukturierte Speicherung
+/// und Verwaltung von personalisierten Gesundheitsberichten.
 class PersonalizedReport {
   final String id;
   final String userId;

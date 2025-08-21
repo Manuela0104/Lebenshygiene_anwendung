@@ -4,6 +4,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'dart:math' as math;
 
+/// Fortschritts-Bildschirm für die Überwachung der Gesundheitsziele
+/// 
+/// Bietet umfassende Funktionalitäten für:
+/// - Anzeige aller gesetzten Gesundheitsziele
+/// - Tägliche Fortschrittsverfolgung in Echtzeit
+/// - Erfolge und Meilensteine mit Feier-Animationen
+/// - Fortschrittsstatistiken und Trends
+/// - Motivation durch visuelle Fortschrittsdarstellung
+/// - Integration mit allen Tracking-Funktionen
+/// 
+/// Der Bildschirm bietet eine zentrale Übersicht über
+/// alle Gesundheitsziele und deren aktuellen Status.
 class GoalsProgressScreen extends StatefulWidget {
   const GoalsProgressScreen({super.key});
 
@@ -11,6 +23,13 @@ class GoalsProgressScreen extends StatefulWidget {
   State<GoalsProgressScreen> createState() => _GoalsProgressScreenState();
 }
 
+/// State-Klasse für den Fortschritts-Bildschirm
+/// 
+/// Verwaltet Zielfortschritt, Erfolge und verschiedene Animationen.
+/// Implementiert Firestore-Integration für Datenpersistierung,
+/// Animationen für Fade, Scale und Rotations-Effekte.
+/// Bietet eine motivierende Benutzeroberfläche mit
+/// Feier-Animationen für erreichte Ziele.
 class _GoalsProgressScreenState extends State<GoalsProgressScreen> with TickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

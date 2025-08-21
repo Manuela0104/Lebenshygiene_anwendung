@@ -12,6 +12,18 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// Intelligente Erinnerungen-Bildschirm mit erweiterten Funktionen
+/// 
+/// Bietet umfassende Funktionalitäten für:
+/// - Intelligente Erinnerungen basierend auf Benutzerverhalten
+/// - Aktivitäts-Tracking mit Streak-System
+/// - Badge-System für Motivation und Erfolge
+/// - Personalisierte Erinnerungszeiten
+/// - Integration mit lokalen Benachrichtigungen
+/// - Verschiedene Aktivitätskategorien (Hydration, Bewegung, Schlaf, Hygiene)
+/// 
+/// Der Bildschirm verwendet KI-ähnliche Logik für
+/// kontextbezogene Erinnerungen und Motivation.
 class SmartRemindersScreen extends StatefulWidget {
   const SmartRemindersScreen({super.key});
 
@@ -19,6 +31,13 @@ class SmartRemindersScreen extends StatefulWidget {
   State<SmartRemindersScreen> createState() => _SmartRemindersScreenState();
 }
 
+/// State-Klasse für den intelligenten Erinnerungen-Bildschirm
+/// 
+/// Verwaltet intelligente Erinnerungen, Aktivitäts-Tracking und Badges.
+/// Implementiert SharedPreferences für lokale Einstellungen,
+/// Firestore-Integration für Datenpersistierung,
+/// Timer-basierte Erinnerungen und Streak-Berechnungen.
+/// Bietet eine intelligente und motivierende Benutzererfahrung.
 class _SmartRemindersScreenState extends State<SmartRemindersScreen> with TickerProviderStateMixin {
   SharedPreferences? _prefs;
   // FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();

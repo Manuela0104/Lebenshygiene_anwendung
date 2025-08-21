@@ -1,5 +1,17 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Motivationszitate-Utility für inspirierenden Inhalt in der App
+/// 
+/// Bietet zentrale Funktionalitäten für:
+/// - Mehrsprachige motivierende Zitate (Deutsch, Englisch, Französisch, etc.)
+/// - Tägliche Zitat-Auswahl basierend auf dem aktuellen Datum
+/// - Persistente Speicherung der Zitate-Einstellungen
+/// - Ein-/Ausschaltbare Zitate-Funktionalität
+/// - Lokalisierte Inspirationsnachrichten für Benutzer
+/// - Konsistente tägliche Zitate durch Datum-basierte Auswahl
+/// 
+/// Die Utility motiviert Benutzer durch positive Nachrichten
+/// und fördert eine gesunde mentale Einstellung.
 class MotivationalQuotes {
   static const Map<String, List<String>> _quotes = {
     'de': [

@@ -3,6 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+/// Einfache Berichte-Bildschirm für grundlegende Gesundheitsstatistiken
+/// 
+/// Bietet Funktionalitäten für:
+/// - Wöchentliche Gesundheitsberichte
+/// - Monatliche Gesundheitsberichte
+/// - Aggregierte Statistiken für Schritte, Wasser, Schlaf und Kalorien
+/// - Einfache Datenvisualisierung
+/// - Integration mit dem täglichen Daten-Tracking
+/// - Übersichtliche Darstellung der wichtigsten Metriken
+/// 
+/// Der Bildschirm bietet eine benutzerfreundliche Übersicht
+/// über grundlegende Gesundheitsstatistiken.
 class SimpleReportsScreen extends StatefulWidget {
   const SimpleReportsScreen({super.key});
 
@@ -10,6 +22,14 @@ class SimpleReportsScreen extends StatefulWidget {
   State<SimpleReportsScreen> createState() => _SimpleReportsScreenState();
 }
 
+/// State-Klasse für den einfachen Berichte-Bildschirm
+/// 
+/// Verwaltet Wochen- und Monatsdaten, Statistiken und Ladezustände.
+/// Implementiert Firestore-Integration für Datenaggregation,
+/// Zeitraum-basierte Datenberechnung,
+/// Einfache Statistik-Berechnungen für verschiedene Metriken.
+/// Bietet eine übersichtliche Darstellung der
+/// wichtigsten Gesundheitsdaten.
 class _SimpleReportsScreenState extends State<SimpleReportsScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;

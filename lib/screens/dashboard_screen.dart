@@ -15,6 +15,16 @@ import 'habits_screen.dart';
 import 'advanced_analytics_screen.dart';
 import 'simple_reports_screen.dart';
 
+/// Hauptdashboard-Bildschirm der Lebenshygiene-Anwendung
+/// 
+/// Zeigt eine umfassende Übersicht über alle wichtigen Gesundheitsmetriken:
+/// - Schritte, Wasseraufnahme, Schlaf, Kalorien
+/// - Fortschrittsbalken für alle Ziele
+/// - Schnellzugriff auf alle Tracking-Funktionen
+/// - Tägliche Statistiken und Trends
+/// 
+/// Der Bildschirm lädt Daten aus Firestore und bietet
+/// eine intuitive Benutzeroberfläche für die Gesundheitsüberwachung.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -22,6 +32,12 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+/// State-Klasse für den Dashboard-Bildschirm
+/// 
+/// Verwaltet alle Gesundheitsdaten, Ziele und Animationen.
+/// Implementiert Firestore-Integration für Datenpersistierung
+/// und bietet eine reaktive Benutzeroberfläche mit
+/// Fade- und Slide-Animationen.
 class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
   int _steps = 0;
   int _stepsGoal = 10000;

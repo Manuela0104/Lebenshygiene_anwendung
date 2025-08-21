@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Theme-Provider für die Verwaltung von App-Erscheinungsbild und -einstellungen
+/// 
+/// Bietet zentrale Funktionalitäten für:
+/// - Theme-Modus-Verwaltung (Hell, Dunkel, System)
+/// - Primärfarben-Auswahl aus vordefinierten Farbpaletten
+/// - Schriftgrößen-Anpassung für Barrierefreiheit
+/// - Persistente Speicherung von Benutzereinstellungen
+/// - Automatisches Laden von gespeicherten Präferenzen
+/// - Change Notifier für reaktive UI-Updates
+/// 
+/// Der Provider ermöglicht Benutzern eine vollständige
+/// Personalisierung der App-Optik nach ihren Vorlieben.
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'theme_mode';
   static const String _primaryColorKey = 'primary_color';

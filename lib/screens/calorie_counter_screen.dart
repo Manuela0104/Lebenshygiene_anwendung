@@ -3,6 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+/// Kalorienzähler-Bildschirm für die Überwachung der täglichen Kalorienaufnahme
+/// 
+/// Bietet Funktionalitäten für:
+/// - Tägliche Kalorienaufnahme verfolgen
+/// - Vergleich mit persönlichen Kalorienzielen
+/// - Eingabe von Mahlzeiten und Snacks
+/// - Fortschrittsanzeige und Statistiken
+/// - Integration mit dem Benutzerprofil für personalisierte Ziele
+/// 
+/// Der Bildschirm speichert alle Daten in Firestore und
+/// bietet eine animierte Benutzeroberfläche.
 class CalorieCounterScreen extends StatefulWidget {
   const CalorieCounterScreen({super.key});
 
@@ -10,6 +21,12 @@ class CalorieCounterScreen extends StatefulWidget {
   State<CalorieCounterScreen> createState() => _CalorieCounterScreenState();
 }
 
+/// State-Klasse für den Kalorienzähler-Bildschirm
+/// 
+/// Verwaltet Kaloriendaten, Ziele und verschiedene Animationen.
+/// Implementiert Firestore-Integration für Datenpersistierung,
+/// Animationen für Fade, Scale und Counter-Effekte.
+/// Bietet eine intuitive Benutzeroberfläche für die Kalorienverfolgung.
 class _CalorieCounterScreenState extends State<CalorieCounterScreen> with TickerProviderStateMixin {
   double _calories = 0.0;
   int _kcalGoal = 2000;

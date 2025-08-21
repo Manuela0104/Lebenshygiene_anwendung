@@ -4,6 +4,17 @@ import 'package:lebenshygiene_anwendung/screens/challenge_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// Mini-Herausforderungen-Bildschirm für motivierende Gesundheitsaktivitäten
+/// 
+/// Bietet Funktionalitäten für:
+/// - Verschiedene Mini-Herausforderungen mit unterschiedlichen Zeiträumen
+/// - Kategorisierte Herausforderungen (digitale Detox, Fitness, Schlaf, etc.)
+/// - Automatische Gewohnheitserstellung aus Challenges
+/// - Integration mit dem Gewohnheits-Tracking-System
+/// - Motivierende Benutzeroberfläche für kontinuierliche Teilnahme
+/// 
+/// Der Bildschirm hilft Benutzern, durch spielerische Herausforderungen
+/// gesunde Gewohnheiten zu entwickeln und zu pflegen.
 class MiniChallengesScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

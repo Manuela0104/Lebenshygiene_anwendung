@@ -5,6 +5,18 @@ import 'package:intl/intl.dart'; // For date formatting
 import 'package:fl_chart/fl_chart.dart';
 import 'package:lebenshygiene_anwendung/screens/challenge_detail_screen.dart';
 
+/// Gewohnheits-Tracker-Bildschirm für die detaillierte Überwachung von Gesundheitsgewohnheiten
+/// 
+/// Bietet umfassende Funktionalitäten für:
+/// - Erstellung und Verwaltung von Gewohnheiten
+/// - Tägliche Verfolgung der Gewohnheitserfüllung
+/// - Kategorisierte Gewohnheiten (Mini-Herausforderungen, intelligente Erinnerungen)
+/// - Fortschrittsstatistiken und Trends mit Charts
+/// - Integration mit anderen Tracking-Funktionen (Stimmung, Schlaf, Schritte)
+/// - Vordefinierte Gewohnheits-Challenges für verschiedene Zeiträume
+/// 
+/// Der Bildschirm bietet eine zentrale Plattform für alle
+/// Gewohnheits-bezogenen Aktivitäten.
 class HabitTrackerScreen extends StatefulWidget {
   final int? initialTabIndex;
   const HabitTrackerScreen({super.key, this.initialTabIndex});
@@ -13,6 +25,13 @@ class HabitTrackerScreen extends StatefulWidget {
   State<HabitTrackerScreen> createState() => _HabitTrackerScreenState();
 }
 
+/// State-Klasse für den Gewohnheits-Tracker-Bildschirm
+/// 
+/// Verwaltet umfassende Gewohnheitsdaten, Kategorien und Statistiken.
+/// Implementiert Firestore-Integration, Tab-basierte Navigation,
+/// Chart-Visualisierung und Challenge-Management.
+/// Bietet eine detaillierte Übersicht über alle Gewohnheitsaktivitäten
+/// und deren Fortschritt über verschiedene Zeiträume.
 class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

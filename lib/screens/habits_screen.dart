@@ -3,6 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+/// Gewohnheiten-Bildschirm für die Verwaltung und Überwachung von Gesundheitsgewohnheiten
+/// 
+/// Bietet Funktionalitäten für:
+/// - Anzeige aller benutzerdefinierten Gewohnheiten
+/// - Tägliche Verfolgung der Gewohnheitserfüllung
+/// - Streak-Zählung für kontinuierliche Gewohnheitsausführung
+/// - Fortschrittsanzeige und Statistiken
+/// - Icon-basierte Gewohnheitsdarstellung
+/// 
+/// Der Bildschirm integriert sich mit dem Gewohnheits-Tracking-System
+/// und speichert alle Daten in Firestore.
 class HabitsScreen extends StatefulWidget {
   const HabitsScreen({super.key});
 
@@ -10,6 +21,13 @@ class HabitsScreen extends StatefulWidget {
   State<HabitsScreen> createState() => _HabitsScreenState();
 }
 
+/// State-Klasse für den Gewohnheiten-Bildschirm
+/// 
+/// Verwaltet Gewohnheitsdaten, Erfüllungsstatus und Statistiken.
+/// Implementiert Firestore-Integration für Datenpersistierung,
+/// Icon-Zuordnung für verschiedene Gewohnheitstypen,
+/// Streak-Berechnung und Fortschrittsverfolgung.
+/// Bietet eine übersichtliche Darstellung aller Gewohnheiten.
 class _HabitsScreenState extends State<HabitsScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

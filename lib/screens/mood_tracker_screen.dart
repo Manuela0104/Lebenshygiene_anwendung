@@ -3,6 +3,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+/// Stimmungs-Tracker-Bildschirm für die Überwachung der täglichen Stimmung
+/// 
+/// Bietet Funktionalitäten für:
+/// - Tägliche Stimmungsbewertung auf einer 5-Punkte-Skala
+/// - Emoji-basierte Stimmungsdarstellung
+/// - Kommentare zu Stimmungsschwankungen
+/// - Verlauf der Stimmungsentwicklung
+/// - Integration mit dem täglichen Daten-Tracking
+/// 
+/// Der Bildschirm verwendet farbige Emojis für verschiedene
+/// Stimmungszustände und speichert alle Daten in Firestore.
 class MoodTrackerScreen extends StatefulWidget {
   const MoodTrackerScreen({super.key});
 
@@ -10,6 +21,13 @@ class MoodTrackerScreen extends StatefulWidget {
   State<MoodTrackerScreen> createState() => _MoodTrackerScreenState();
 }
 
+/// State-Klasse für den Stimmungs-Tracker-Bildschirm
+/// 
+/// Verwaltet Stimmungsdaten, Emoji-Animationen und Benutzereingaben.
+/// Implementiert Firestore-Integration für Datenpersistierung,
+/// Animationen für Fade, Scale und Emoji-Effekte.
+/// Bietet eine intuitive Benutzeroberfläche mit visuellen
+/// Stimmungselementen und Kommentarfunktionalität.
 class _MoodTrackerScreenState extends State<MoodTrackerScreen> with TickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
