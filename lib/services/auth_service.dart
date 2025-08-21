@@ -96,4 +96,31 @@ class AuthService extends ChangeNotifier {
       return null;
     }
   }
+
+  // Passwort zurücksetzen
+  Future<String?> resetPassword(String email) async {
+    try {
+      print('🔄 Starte Passwort-Reset für: $email');
+      print('📧 Firebase Auth Status: ${_auth.currentUser?.uid ?? "Kein Benutzer angemeldet"}');
+      
+      await _auth.sendPasswordResetEmail(email: email);
+      print('✅ Passwort-Reset E-Mail erfolgreich gesendet an: $email');
+      return 'success';
+    } on FirebaseAuthException catch (e) {
+      print('❌ Firebase Auth Fehler: ${e.code} - ${e.message}');
+      switch (e.code) {
+        case 'user-not-found':
+          return 'Kein Benutzer mit dieser E-Mail-Adresse gefunden.';
+        case 'invalid-email':
+          return 'Ungültige E-Mail-Adresse.';
+        case 'too-many-requests':
+          return 'Zu viele Anfragen. Versuchen Sie es später erneut.';
+        default:
+          return 'Ein Fehler ist aufgetreten: ${e.message}';
+      }
+    } catch (e) {
+      print('❌ Unerwarteter Fehler: $e');
+      return 'Ein unerwarteter Fehler ist aufgetreten.';
+    }
+  }
 }

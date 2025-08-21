@@ -309,6 +309,18 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                     : const Text('Einloggen', style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
             ),
+            const SizedBox(height: 15),
+            TextButton(
+              onPressed: () => _showForgotPasswordDialog(context),
+              child: Text(
+                'Passwort vergessen?',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 14,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -503,5 +515,179 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
         });
       }
     }
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final emailController = TextEditingController();
+    bool isLoading = false;
+    String? errorMessage;
+    String? successMessage;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF2d3748),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                'Passwort zurücksetzen',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Geben Sie Ihre E-Mail-Adresse ein, um Ihr Passwort zurückzusetzen.',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: emailController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'E-Mail',
+                      labelStyle: TextStyle(color: Colors.white70),
+                      prefixIcon: Icon(Icons.email, color: Colors.white.withOpacity(0.7)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: const Color(0xFF3182ce), width: 2),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.05),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  if (errorMessage != null)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(top: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        errorMessage!,
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  if (successMessage != null)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(top: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        successMessage!,
+                        style: const TextStyle(color: Colors.green, fontSize: 14),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Abbrechen',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3182ce),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: isLoading ? null : () async {
+                    if (emailController.text.trim().isEmpty) {
+                      setState(() {
+                        errorMessage = 'Bitte geben Sie eine E-Mail-Adresse ein.';
+                        successMessage = null;
+                      });
+                      return;
+                    }
+
+                    setState(() {
+                      isLoading = true;
+                      errorMessage = null;
+                      successMessage = null;
+                    });
+
+                    try {
+                      final authService = Provider.of<AuthService>(context, listen: false);
+                      final result = await authService.resetPassword(emailController.text.trim());
+                      
+                      if (result == 'success') {
+                        setState(() {
+                          successMessage = 'E-Mail zum Zurücksetzen des Passworts wurde gesendet!';
+                          errorMessage = null;
+                        });
+                        
+                        // Dialog nach 3 Sekunden schließen
+                        Future.delayed(const Duration(seconds: 3), () {
+                          if (Navigator.canPop(context)) {
+                            Navigator.of(context).pop();
+                          }
+                        });
+                      } else {
+                        setState(() {
+                          errorMessage = result;
+                          successMessage = null;
+                        });
+                      }
+                    } catch (e) {
+                      setState(() {
+                        errorMessage = 'Ein Fehler ist aufgetreten: $e';
+                        successMessage = null;
+                      });
+                    } finally {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
+                  },
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Senden',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }
