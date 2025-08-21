@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// Importieren Sie hier andere notwendige Abhängigkeiten, falls der challengeDetailScreen verwendet wird
 import 'package:lebenshygiene_anwendung/screens/challenge_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

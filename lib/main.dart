@@ -7,8 +7,7 @@ import 'firebase_options.dart';
 import 'screens/home.dart';
 import 'screens/auth_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/nutrition_screen.dart';
-import 'screens/training_screen.dart';
+
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/habit_tracker_screen.dart';
@@ -76,8 +75,7 @@ class MyApp extends StatelessWidget {
               '/login': (context) => const LoginScreen(),
               '/register': (context) => const RegisterScreen(),
               '/profile': (context) => const ProfileScreen(),
-              '/nutrition': (context) => const NutritionScreen(),
-              '/training': (context) => const TrainingScreen(),
+
               '/habits': (context) => const HabitTrackerScreen(),
               '/analytics': (context) => const AdvancedAnalyticsScreen(),
               '/personalization': (context) => const PersonalizationScreen(),

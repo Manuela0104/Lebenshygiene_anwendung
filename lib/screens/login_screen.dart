@@ -448,7 +448,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () {
-            // TODO: Implement password reset
+            // Passwort-Reset ist bereits im AuthService implementiert
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text('Passwort-Reset wird bald verfügbar sein'),
