@@ -7,8 +7,6 @@ class PersonalizedReport {
   final DateTime endDate;
   final String period; // 'weekly', 'monthly'
   final Map<String, dynamic> metrics;
-  final Map<String, dynamic> insights;
-  final Map<String, dynamic> recommendations;
   final DateTime createdAt;
   final bool isRead;
 
@@ -19,8 +17,6 @@ class PersonalizedReport {
     required this.endDate,
     required this.period,
     required this.metrics,
-    required this.insights,
-    required this.recommendations,
     required this.createdAt,
     this.isRead = false,
   });
@@ -34,8 +30,6 @@ class PersonalizedReport {
       endDate: (data['endDate'] as Timestamp).toDate(),
       period: data['period'] ?? 'weekly',
       metrics: data['metrics'] ?? {},
-      insights: data['insights'] ?? {},
-      recommendations: data['recommendations'] ?? {},
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       isRead: data['isRead'] ?? false,
     );
@@ -48,8 +42,6 @@ class PersonalizedReport {
       'endDate': Timestamp.fromDate(endDate),
       'period': period,
       'metrics': metrics,
-      'insights': insights,
-      'recommendations': recommendations,
       'createdAt': Timestamp.fromDate(createdAt),
       'isRead': isRead,
     };
@@ -108,46 +100,6 @@ class ReportMetrics {
       'completedHabits': completedHabits,
       'stressLevel': stressLevel,
       'energyLevel': energyLevel,
-    };
-  }
-}
-
-class ReportInsights {
-  final String overallTrend;
-  final String bestMetric;
-  final String worstMetric;
-  final String improvementArea;
-  final List<String> achievements;
-  final List<String> challenges;
-
-  ReportInsights({
-    required this.overallTrend,
-    required this.bestMetric,
-    required this.worstMetric,
-    required this.improvementArea,
-    required this.achievements,
-    required this.challenges,
-  });
-
-  factory ReportInsights.fromMap(Map<String, dynamic> map) {
-    return ReportInsights(
-      overallTrend: map['overallTrend'] ?? 'Stabil',
-      bestMetric: map['bestMetric'] ?? '',
-      worstMetric: map['worstMetric'] ?? '',
-      improvementArea: map['improvementArea'] ?? '',
-      achievements: List<String>.from(map['achievements'] ?? []),
-      challenges: List<String>.from(map['challenges'] ?? []),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'overallTrend': overallTrend,
-      'bestMetric': bestMetric,
-      'worstMetric': worstMetric,
-      'improvementArea': improvementArea,
-      'achievements': achievements,
-      'challenges': challenges,
     };
   }
 } 

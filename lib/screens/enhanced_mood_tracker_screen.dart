@@ -3,7 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'dart:math' as math;
+import '../utils/language_provider.dart';
+import '../utils/motivational_quotes.dart';
 
 class EnhancedMoodTrackerScreen extends StatefulWidget {
   const EnhancedMoodTrackerScreen({super.key});
@@ -58,21 +61,26 @@ class _EnhancedMoodTrackerScreenState extends State<EnhancedMoodTrackerScreen> w
     },
   ];
 
-  final List<String> _motivationalQuotes = [
-    "Jeder Tag ist ein neuer Anfang.",
-    "Du bist stärker als du denkst.",
-    "Kleine Schritte führen zu großen Veränderungen.",
-    "Heute ist ein guter Tag für einen guten Tag.",
-    "Atme tief und lass los.",
-    "Du verdienst Glück und Frieden.",
-    "Vertraue dem Prozess des Lebens.",
-  ];
+  String _currentQuote = "Jeder Tag ist ein neuer Anfang.";
 
   @override
   void initState() {
     super.initState();
     _initAnimations();
     _loadMoodData();
+    _loadQuote();
+  }
+
+  Future<void> _loadQuote() async {
+    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageCode = languageProvider.locale.languageCode;
+    final isEnabled = await MotivationalQuotes.isQuotesEnabled();
+    
+    if (isEnabled) {
+      setState(() {
+        _currentQuote = MotivationalQuotes.getQuoteOfTheDay(languageCode);
+      });
+    }
   }
 
   void _initAnimations() {
@@ -376,7 +384,7 @@ class _EnhancedMoodTrackerScreenState extends State<EnhancedMoodTrackerScreen> w
   }
 
   Widget _buildDailyQuote(bool isTablet) {
-    final quote = _motivationalQuotes[DateTime.now().day % _motivationalQuotes.length];
+    final quote = _currentQuote;
     
     return Container(
       padding: EdgeInsets.all(isTablet ? 30 : 25),
@@ -793,6 +801,7 @@ class _EnhancedMoodTrackerScreenState extends State<EnhancedMoodTrackerScreen> w
                   '🔥',
                   isTablet,
                 ),
+
               ),
               const SizedBox(width: 16),
               Expanded(

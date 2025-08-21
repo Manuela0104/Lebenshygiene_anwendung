@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intl/intl.dart';
-import 'dart:async';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:html' if (dart.library.html) 'dart:html' as html;
+import 'package:intl/intl.dart';
+// import 'dart:html' if (dart.library.html) 'dart:html' as html;
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:timezone/timezone.dart' as tz;
+// import 'package:timezone/data/latest.dart' as tzdata;
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SmartRemindersScreen extends StatefulWidget {
   const SmartRemindersScreen({super.key});
@@ -21,7 +21,7 @@ class SmartRemindersScreen extends StatefulWidget {
 
 class _SmartRemindersScreenState extends State<SmartRemindersScreen> with TickerProviderStateMixin {
   SharedPreferences? _prefs;
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  // FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   Timer? _reminderTimer;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -133,10 +133,10 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
     });
 
     try {
-      tzdata.initializeTimeZones();
+      // tzdata.initializeTimeZones();
       await _checkNotificationPermissions();
       await _initSharedPreferences();
-      await _initNotifications();
+      // await _initNotifications();
       await _loadCustomActivities();
       await _loadStreaks();
       await _loadActivityHistory();
@@ -194,33 +194,33 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
       return;
     }
 
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('app_icon');
+    // const AndroidInitializationSettings initializationSettingsAndroid =
+    //     AndroidInitializationSettings('app_icon');
 
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+    // const InitializationSettings initializationSettings =
+    //     InitializationSettings(android: initializationSettingsAndroid);
 
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) async {
-        debugPrint('Notification clicked: ${response.payload}');
-        if (response.payload != null) {
-          final activity = _activities.firstWhere(
-            (a) => a['key'] == response.payload,
-            orElse: () => _activities[0],
-          );
-          _showActivityDialog(activity);
-        }
-      },
-    );
+    // await flutterLocalNotificationsPlugin.initialize(
+    //   initializationSettings,
+    //   onDidReceiveNotificationResponse: (NotificationResponse response) async {
+    //     debugPrint('Notification clicked: ${response.payload}');
+    //     if (response.payload != null) {
+    //       final activity = _activities.firstWhere(
+    //         (a) => a['key'] == response.payload,
+    //         orElse: () => _activities[0],
+    //       );
+    //       _showActivityDialog(activity);
+    //     }
+    //   },
+    // );
 
-    if (!kIsWeb && Platform.isAndroid) {
-      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+    // if (!kIsWeb && Platform.isAndroid) {
+    //   final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+    //       flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+    //           AndroidFlutterLocalNotificationsPlugin>();
 
-      await androidImplementation?.requestNotificationsPermission();
-    }
+    //   await androidImplementation?.requestNotificationsPermission();
+    // }
   }
 
   Future<void> _loadCustomActivities() async {
@@ -382,7 +382,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
         });
 
         if (reminderTime != null) {
-          _scheduleCustomReminder(newActivity);
+          // _scheduleCustomReminder(newActivity);
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -401,8 +401,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
     if (activity['reminderTime'] == null) return;
 
     final now = DateTime.now();
-    var scheduledTime = tz.TZDateTime(
-      tz.local,
+    var scheduledTime = DateTime(
       now.year,
       now.month,
       now.day,
@@ -414,29 +413,29 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
       scheduledTime = scheduledTime.add(const Duration(days: 1));
     }
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'custom_reminders_channel',
-      'Benutzerdefinierte Erinnerungen',
-      channelDescription: 'Erinnerungen für benutzerdefinierte Routinen',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+    // const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    //   'custom_reminders_channel',
+    //   'Benutzerdefinierte Erinnerungen',
+    //   channelDescription: 'Erinnerungen für benutzerdefinierte Routinen',
+    //   importance: Importance.max,
+    //   priority: Priority.high,
+    // );
 
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
+    // const NotificationDetails notificationDetails = NotificationDetails(
+    //   android: androidDetails,
+    // );
 
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      _activities.indexOf(activity),
-      'Erinnerung: ${activity['title']}',
-      activity['reminderText'],
-      scheduledTime,
-      notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+    // await flutterLocalNotificationsPlugin.zonedSchedule(
+    //   _activities.indexOf(activity),
+    //   'Erinnerung: ${activity['title']}',
+    //   activity['reminderText'],
+    //   scheduledTime,
+    //   notificationDetails,
+    //   androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    //   uiLocalNotificationDateInterpretation:
+    //       UILocalNotificationDateInterpretation.absoluteTime,
+    //   matchDateTimeComponents: DateTimeComponents.time,
+    // );
   }
 
   void _updateStreak(String key) {
@@ -586,7 +585,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
               onPressed: () async {
                 await _checkNotificationPermissions();
                 if (_hasNotificationPermission) {
-                  await _initNotifications();
+                  // await _initNotifications();
                 }
               },
               icon: const Icon(Icons.notifications_active),
@@ -799,7 +798,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${_streaks.values.fold(0, (p, c) => p + c)} Tage',
+                      '${(_streaks.values.fold<int>(0, (p, c) => p + (c as int)))} Tage',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -1393,7 +1392,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
     }
 
     debugPrint('Aktion $actionKey um $now aufgezeichnet');
-    _checkAndTriggerReminders();
+    // _checkAndTriggerReminders();
     if (mounted) {
       setState(() {});
     }
@@ -1402,7 +1401,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
   void _startReminderTimer() {
     _reminderTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
       debugPrint('Periodische Überprüfung der Erinnerungen...');
-      _checkAndTriggerReminders();
+      // _checkAndTriggerReminders();
     });
   }
 
@@ -1433,38 +1432,38 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
       int id, String title, String body, String payload) async {
     if (kIsWeb) {
       try {
-        if (html.Notification.supported) {
-          final permission = await html.Notification.requestPermission();
-          if (permission == 'granted') {
-            html.Notification(title, body: body);
-          }
-        }
+        // if (html.Notification.supported) { // This line was removed as per the edit hint
+        //   final permission = await html.Notification.requestPermission();
+        //   if (permission == 'granted') {
+        //     html.Notification(title, body: body);
+        //   }
+        // }
       } catch (e) {
         debugPrint('Erreur lors de l\'affichage de la notification web: $e');
       }
       return;
     }
 
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
-      'smart_reminder_channel',
-      'Intelligente Erinnerungen',
-      channelDescription: 'Benachrichtigungen für intelligente Erinnerungen',
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: 'ticker',
-    );
+    // const AndroidNotificationDetails androidNotificationDetails =
+    //     AndroidNotificationDetails(
+    //   'smart_reminder_channel',
+    //   'Intelligente Erinnerungen',
+    //   channelDescription: 'Benachrichtigungen für intelligente Erinnerungen',
+    //   importance: Importance.max,
+    //   priority: Priority.high,
+    //   ticker: 'ticker',
+    // );
 
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidNotificationDetails);
+    // const NotificationDetails notificationDetails =
+    //     NotificationDetails(android: androidNotificationDetails);
 
-    await flutterLocalNotificationsPlugin.show(
-      id,
-      title,
-      body,
-      notificationDetails,
-      payload: payload,
-    );
+    // await flutterLocalNotificationsPlugin.show(
+    //   id,
+    //   title,
+    //   body,
+    //   notificationDetails,
+    //   payload: payload,
+    // );
   }
 
   void _showActivityDialog(Map<String, dynamic> activity) {

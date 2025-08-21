@@ -40,8 +40,6 @@ class ReportService {
   ) async {
     // Alle Daten für den Zeitraum sammeln
     final metrics = await _collectMetrics(userId, startDate, endDate);
-    final insights = await _generateInsights(metrics, period);
-    final recommendations = await _generateRecommendations(metrics, insights);
 
     final report = PersonalizedReport(
       id: '',
@@ -50,8 +48,6 @@ class ReportService {
       endDate: endDate,
       period: period,
       metrics: metrics.toMap(),
-      insights: insights.toMap(),
-      recommendations: recommendations,
       createdAt: DateTime.now(),
     );
 
@@ -69,8 +65,6 @@ class ReportService {
       endDate: endDate,
       period: period,
       metrics: metrics.toMap(),
-      insights: insights.toMap(),
-      recommendations: recommendations,
       createdAt: DateTime.now(),
     );
   }
@@ -229,180 +223,6 @@ class ReportService {
   double _calculateAverage(List<double> values) {
     if (values.isEmpty) return 0.0;
     return values.reduce((a, b) => a + b) / values.length;
-  }
-
-  Future<ReportInsights> _generateInsights(ReportMetrics metrics, String period) async {
-    final achievements = <String>[];
-    final challenges = <String>[];
-
-    // Wasser analysieren
-    if (metrics.waterIntake >= 2.0) {
-      achievements.add('Ausgezeichnete Hydratation (${metrics.waterIntake.toStringAsFixed(1)}L/Tag)');
-    } else if (metrics.waterIntake < 1.5) {
-      challenges.add('Unzureichende Hydratation (${metrics.waterIntake.toStringAsFixed(1)}L/Tag)');
-    }
-
-    // Schritte analysieren
-    if (metrics.steps >= 8000) {
-      achievements.add('Ausgezeichnete körperliche Aktivität (${metrics.steps.toStringAsFixed(0)} Schritte/Tag)');
-    } else if (metrics.steps < 5000) {
-      challenges.add('Geringe körperliche Aktivität (${metrics.steps.toStringAsFixed(0)} Schritte/Tag)');
-    }
-
-    // Schlaf analysieren
-    if (metrics.sleepHours >= 7.0) {
-      achievements.add('Optimaler Schlaf (${metrics.sleepHours.toStringAsFixed(1)}h/Nacht)');
-    } else if (metrics.sleepHours < 6.0) {
-      challenges.add('Unzureichender Schlaf (${metrics.sleepHours.toStringAsFixed(1)}h/Nacht)');
-    }
-
-    // Stimmung analysieren
-    if (metrics.moodAverage >= 4.0) {
-      achievements.add('Ausgezeichnete Stimmung (${metrics.moodAverage.toStringAsFixed(1)}/5)');
-    } else if (metrics.moodAverage < 3.0) {
-      challenges.add('Stimmung verbesserungsbedürftig (${metrics.moodAverage.toStringAsFixed(1)}/5)');
-    }
-
-    // Gewohnheiten analysieren
-    if (metrics.habitCompletionRate >= 0.8) {
-      achievements.add('Ausgezeichnete Beständigkeit bei Gewohnheiten (${(metrics.habitCompletionRate * 100).toStringAsFixed(0)}%)');
-    } else if (metrics.habitCompletionRate < 0.5) {
-      challenges.add('Beständigkeit bei Gewohnheiten verbesserungsbedürftig (${(metrics.habitCompletionRate * 100).toStringAsFixed(0)}%)');
-    }
-
-    // Gesamttrend bestimmen
-    final overallTrend = _determineOverallTrend(metrics);
-    
-    // Beste und schlechteste Metriken bestimmen
-    final bestMetric = _determineBestMetric(metrics);
-    final worstMetric = _determineWorstMetric(metrics);
-    final improvementArea = _determineImprovementArea(metrics);
-
-    return ReportInsights(
-      overallTrend: overallTrend,
-      bestMetric: bestMetric,
-      worstMetric: worstMetric,
-      improvementArea: improvementArea,
-      achievements: achievements,
-      challenges: challenges,
-    );
-  }
-
-  String _determineOverallTrend(ReportMetrics metrics) {
-    int positiveCount = 0;
-    int totalCount = 0;
-
-    if (metrics.waterIntake >= 2.0) positiveCount++;
-    if (metrics.steps >= 8000) positiveCount++;
-    if (metrics.sleepHours >= 7.0) positiveCount++;
-    if (metrics.moodAverage >= 4.0) positiveCount++;
-    if (metrics.habitCompletionRate >= 0.8) positiveCount++;
-
-    totalCount = 5;
-
-    final percentage = positiveCount / totalCount;
-
-    if (percentage >= 0.8) return 'Ausgezeichnet';
-    if (percentage >= 0.6) return 'Gut';
-    if (percentage >= 0.4) return 'Mittel';
-    return 'Verbesserungsbedürftig';
-  }
-
-  String _determineBestMetric(ReportMetrics metrics) {
-    final scores = {
-      'Hydratation': metrics.waterIntake / 2.5,
-      'Aktivität': metrics.steps / 10000,
-      'Schlaf': metrics.sleepHours / 8.0,
-      'Stimmung': metrics.moodAverage / 5.0,
-      'Gewohnheiten': metrics.habitCompletionRate,
-    };
-
-    final best = scores.entries.reduce((a, b) => a.value > b.value ? a : b);
-    return best.key;
-  }
-
-  String _determineWorstMetric(ReportMetrics metrics) {
-    final scores = {
-      'Hydratation': metrics.waterIntake / 2.5,
-      'Aktivität': metrics.steps / 10000,
-      'Schlaf': metrics.sleepHours / 8.0,
-      'Stimmung': metrics.moodAverage / 5.0,
-      'Gewohnheiten': metrics.habitCompletionRate,
-    };
-
-    final worst = scores.entries.reduce((a, b) => a.value < b.value ? a : b);
-    return worst.key;
-  }
-
-  String _determineImprovementArea(ReportMetrics metrics) {
-    final scores = {
-      'Hydratation': metrics.waterIntake / 2.5,
-      'Aktivität': metrics.steps / 10000,
-      'Schlaf': metrics.sleepHours / 8.0,
-      'Stimmung': metrics.moodAverage / 5.0,
-      'Gewohnheiten': metrics.habitCompletionRate,
-    };
-
-    final worst = scores.entries.reduce((a, b) => a.value < b.value ? a : b);
-    return worst.key;
-  }
-
-  Future<Map<String, dynamic>> _generateRecommendations(ReportMetrics metrics, ReportInsights insights) async {
-    final recommendations = <String>[];
-
-    // Empfehlungen basierend auf Metriken
-    if (metrics.waterIntake < 2.0) {
-      recommendations.add('Erhöhen Sie Ihre Wasseraufnahme auf 2L pro Tag');
-    }
-
-    if (metrics.steps < 8000) {
-      recommendations.add('Gehen Sie mindestens 8000 Schritte pro Tag');
-    }
-
-    if (metrics.sleepHours < 7.0) {
-      recommendations.add('Schlafen Sie 7-9 Stunden pro Nacht für bessere Erholung');
-    }
-
-    if (metrics.moodAverage < 4.0) {
-      recommendations.add('Praktizieren Sie Meditation oder entspannende Aktivitäten');
-    }
-
-    if (metrics.habitCompletionRate < 0.8) {
-      recommendations.add('Konzentrieren Sie sich auf 2-3 Prioritätsgewohnheiten');
-    }
-
-    // Empfehlungen basierend auf Insights
-    if (insights.improvementArea.isNotEmpty) {
-      recommendations.add('Priorisieren Sie die Verbesserung Ihrer ${insights.improvementArea.toLowerCase()}');
-    }
-
-    return {
-      'general': recommendations,
-      'priority': insights.improvementArea.isNotEmpty ? [insights.improvementArea] : [],
-      'nextWeek': _generateNextWeekGoals(metrics),
-    };
-  }
-
-  List<String> _generateNextWeekGoals(ReportMetrics metrics) {
-    final goals = <String>[];
-
-    if (metrics.waterIntake < 2.0) {
-      goals.add('2L Wasser pro Tag erreichen');
-    }
-
-    if (metrics.steps < 8000) {
-      goals.add('8000 Schritte pro Tag erreichen');
-    }
-
-    if (metrics.sleepHours < 7.0) {
-      goals.add('Mindestens 7h pro Nacht schlafen');
-    }
-
-    if (metrics.habitCompletionRate < 0.8) {
-      goals.add('80% Beständigkeit bei Gewohnheiten beibehalten');
-    }
-
-    return goals;
   }
 
   // Alle Berichte eines Benutzers abrufen

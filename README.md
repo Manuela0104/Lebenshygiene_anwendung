@@ -1,112 +1,156 @@
-# Lebenshygiene - Gesundheits- und Lifestyle-Tracking App
+# Lebenshygiene-Anwendung
 
-## 📱 Über die App
+## 📋 Description du projet
+Application mobile de suivi de l'hygiène de vie développée dans le cadre d'un mémoire de fin d'études.
 
-Lebenshygiene ist eine moderne Flutter-Anwendung zur Verfolgung und Verbesserung Ihrer Gesundheits- und Lifestyle-Gewohnheiten. Die App bietet ein umfassendes Set von Funktionen zur Überwachung verschiedener Gesundheitsmetriken und zur Förderung eines gesunden Lebensstils.
+## 🏗️ Architecture technique
 
-## 🌟 Hauptfunktionen
+### Base de données
+- **Base locale** : SQLite (sqflite) pour le stockage local et hors ligne
+- **Base cloud** : Firebase Firestore pour la synchronisation et le partage des données
+- **Authentification** : Firebase Auth pour la gestion des utilisateurs
+- **Stockage** : Firebase Storage pour les fichiers et images
 
-### Dashboard
-- **Gesundheitsmetriken**: Überwachung von BMI, Gewicht und Größe
-- **Tägliche Aktivitäten**: Tracking von Schritten, Wasseraufnahme, Schlaf und Kalorien
-- **Schnellzugriff**: Direkte Navigation zu wichtigen Funktionen
+### Technologies utilisées
+- **Framework** : Flutter 3.35.1
+- **Langage** : Dart
+- **État** : Provider pour la gestion d'état
+- **Interface** : Material Design 3
+- **Graphiques** : fl_chart pour les visualisations
+- **Permissions** : permission_handler pour l'accès aux fonctionnalités
 
-### Erweiterte Analysen
-- **KI-basierte Insights**: Personalisierte Erkenntnisse über Gesundheitsmuster
-- **Korrelationsanalyse**: Zusammenhänge zwischen verschiedenen Gesundheitsmetriken
-- **Mustererkennung**: Identifizierung von Verhaltensmustern
-- **Personalisierte Empfehlungen**: Maßgeschneiderte Gesundheitsvorschläge
-- **Detaillierte Metriken**: Tiefgehende Analyse der Gesundheitsdaten
+## 🚀 Installation et configuration
 
-### Berichte
-- **Wöchentliche Berichte**: Durchschnittliche Leistung der letzten Woche
-- **Monatliche Berichte**: Langzeittrends und Fortschritte
-- **Zusammenfassungen**: Übersichtliche Darstellung der Gesundheitsdaten
-
-### Weitere Features
-- **Mini-Herausforderungen**: Motivierende Gesundheitsziele
-- **Intelligente Erinnerungen**: Personalisierte Benachrichtigungen
-- **Gewohnheits-Tracking**: Verfolgung täglicher Gewohnheiten
-
-## 🛠 Technische Details
-
-### Voraussetzungen
-- Flutter SDK (neueste Version)
-- Dart SDK
-- Firebase Account
-- Android Studio / VS Code
-
-### Abhängigkeiten
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  firebase_core: ^x.x.x
-  firebase_auth: ^x.x.x
-  cloud_firestore: ^x.x.x
-  pedometer: ^x.x.x
-  percent_indicator: ^x.x.x
-  intl: ^x.x.x
-```
+### Prérequis
+- Flutter SDK 3.35.1 ou supérieur
+- Dart SDK 3.9.0 ou supérieur
+- Compte Firebase
 
 ### Installation
+1. Cloner le repository
+2. Installer les dépendances : `flutter pub get`
+3. Configurer Firebase (voir section Firebase)
+4. Lancer l'application : `flutter run`
 
-1. Repository klonen:
-```bash
-git clone https://github.com/ihr-username/lebenshygiene_anwendung.git
+## 🔥 Configuration Firebase
+
+### 1. Créer un projet Firebase
+- Aller sur [console.firebase.google.com](https://console.firebase.google.com)
+- Créer un nouveau projet
+- Activer Authentication, Firestore et Storage
+
+### 2. Configuration de l'application
+- Ajouter une application web dans Firebase
+- Copier la configuration dans `lib/firebase_options.dart`
+- Activer les règles de sécurité Firestore
+
+### 3. Règles Firestore
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
 ```
 
-2. In das Projektverzeichnis wechseln:
-```bash
-cd lebenshygiene_anwendung
+## 📱 Fonctionnalités principales
+
+- **Authentification** : Inscription/Connexion utilisateur
+- **Suivi des habitudes** : Tracker personnalisable
+- **Analyses avancées** : Graphiques et statistiques
+- **Personnalisation** : Thèmes et langues
+- **Synchronisation** : Données locales + cloud
+- **Notifications** : Rappels intelligents
+
+## 🗂️ Structure du projet
+
+```
+lib/
+├── models/          # Modèles de données
+├── screens/         # Écrans de l'application
+├── services/        # Services (Auth, Firebase)
+├── utils/           # Utilitaires et providers
+└── widgets/         # Composants réutilisables
 ```
 
-3. Abhängigkeiten installieren:
+## 🔧 Développement
+
+### Commandes utiles
 ```bash
-flutter pub get
+flutter clean          # Nettoyer le projet
+flutter pub get        # Installer les dépendances
+flutter run            # Lancer en mode debug
+flutter build web      # Construire pour le web
+flutter test           # Exécuter les tests
 ```
 
-4. Firebase einrichten:
-   - Firebase-Projekt erstellen
-   - google-services.json (Android) / GoogleService-Info.plist (iOS) herunterladen
-   - Dateien im Projekt platzieren
-
-5. Anwendung starten:
+### Tests
 ```bash
-flutter run
+flutter test           # Tests unitaires
+flutter test --platform chrome  # Tests web
 ```
 
-## 📱 Screenshots
+## 📊 Base de données
 
-[Hier können Screenshots der App eingefügt werden]
+### Structure Firestore
+```
+users/
+├── {userId}/
+│   ├── profile: {firstName, email, createdAt}
+│   ├── habits: [{name, frequency, streak}]
+│   ├── goals: [{title, target, progress}]
+│   └── analytics: {data, charts}
+```
 
-## 🔒 Datenschutz
+### Synchronisation
+- Données stockées localement pour performance
+- Synchronisation automatique avec Firebase
+- Gestion des conflits et résolution
 
-Die App speichert alle persönlichen Daten sicher in Firebase und folgt den DSGVO-Richtlinien. Benutzerdaten werden verschlüsselt übertragen und gespeichert.
+## 🎨 Interface utilisateur
 
-## 🤝 Mitwirken
+- **Design System** : Material Design 3
+- **Thèmes** : Mode clair/sombre
+- **Responsive** : Adaptation tablette et mobile
+- **Accessibilité** : Support des lecteurs d'écran
 
-Beiträge sind willkommen! Bitte folgen Sie diesen Schritten:
+## 📈 Performance
 
-1. Fork des Repositories
-2. Feature-Branch erstellen (`git checkout -b feature/AmazingFeature`)
-3. Änderungen committen (`git commit -m 'Add some AmazingFeature'`)
-4. Branch pushen (`git push origin feature/AmazingFeature`)
-5. Pull Request erstellen
+- **Lazy Loading** : Chargement à la demande
+- **Cache local** : Données fréquemment utilisées
+- **Optimisation** : Tree-shaking et minification
+- **PWA** : Support des fonctionnalités web avancées
 
-## 📄 Lizenz
+## 🔒 Sécurité
 
-Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE) Datei für Details.
+- **Authentification** : Firebase Auth
+- **Autorisations** : Règles Firestore
+- **Validation** : Vérification des données
+- **Chiffrement** : HTTPS et sécurité Firebase
 
-## 👥 Team
+## 📝 Documentation
 
-- Entwickler: Manuela Dongmo
-- Designer: Manuela Dongmo
-- Projektleitung: Manuela Dongmo
+- **Code** : Commentaires en allemand
+- **API** : Documentation des services
+- **Architecture** : Diagrammes et explications
+- **Tests** : Couverture et exemples
 
-## 📞 Kontakt
+## 🤝 Contribution
 
-Bei Fragen oder Anregungen:
-- Email: dongmomanuela@yahoo.com
-- Website: 
-- GitHub: 
+Ce projet est développé dans le cadre d'un mémoire de fin d'études.
+Pour toute question ou suggestion, contacter l'auteur.
+
+## 📄 Licence
+
+Projet académique - Tous droits réservés
+
+---
+
+**Auteur** : [Votre nom]  
+**Date** : [Date actuelle]  
+**Version** : 1.0.0  
+**Flutter** : 3.35.1  
+**Dart** : 3.9.0

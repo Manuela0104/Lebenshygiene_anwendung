@@ -8,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'reminders_screen.dart';
 import 'goal_selection_screen.dart';
+import 'personalization_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -888,6 +889,19 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const KontoEditScreen()),
+            );
+          },
+        ),
+        const SizedBox(height: 15),
+        _buildSettingsTile(
+          'Personalisierung',
+          'Theme, Sprache, Schriftgröße',
+          Icons.palette,
+          const Color(0xFFfa709a),
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PersonalizationScreen()),
             );
           },
         ),

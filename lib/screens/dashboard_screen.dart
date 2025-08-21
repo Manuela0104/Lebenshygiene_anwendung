@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pedometer/pedometer.dart';
 import 'package:intl/intl.dart';
-import 'questionnaire_screen.dart';
 import 'water_counter_screen.dart';
 import 'sleep_counter_screen.dart';
 import 'calorie_counter_screen.dart';
@@ -36,7 +34,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
   double _weight = 66.0;
   double _height = 170.0;
   DateTime _selectedDate = DateTime.now();
-  String? _weightRecommendation; // Variable to store the recommendation
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -520,6 +517,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        height: 140, // Ajout d'une hauteur fixe pour éviter le débordement
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
@@ -530,6 +528,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           ),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Centrer le contenu
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -547,6 +546,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Container(
@@ -575,6 +575,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -627,21 +628,24 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           children: [
             Expanded(
               child: _buildQuickActionCard(
-                'Erweiterte Analysen',
-                Icons.analytics,
-                const Color(0xFF43e97b),
-                () => Navigator.pushNamed(context, '/analytics'),
-              ),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: _buildQuickActionCard(
                 'Berichte',
                 Icons.assessment,
                 const Color(0xFFff9a9e),
                 () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const SimpleReportsScreen()),
+                ),
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: _buildQuickActionCard(
+                'Mini Herausforderungen',
+                Icons.analytics,
+                const Color(0xFF43e97b),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MiniChallengesScreen()),
                 ),
               ),
             ),
@@ -814,24 +818,6 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
 
   Widget _buildCategoriesSection() {
     final categories = [
-      {
-        'title': 'Mini-Herausforderungen',
-        'icon': Icons.star_outline,
-        'color': const Color(0xFF4facfe),
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MiniChallengesScreen()),
-        ),
-      },
-      {
-        'title': 'Intelligente Erinnerungen',
-        'icon': Icons.notifications_active_outlined,
-        'color': const Color(0xFFfa709a),
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SmartRemindersScreen()),
-        ),
-      },
     ];
 
     return Column(

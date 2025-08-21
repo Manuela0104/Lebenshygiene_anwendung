@@ -1,185 +1,173 @@
-# Diagramme d'Architecture - Lebenshygiene-Anwendung
+# Architekturmodell - Lebenshygiene-Anwendung
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           PRÉSENTATION LAYER                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │
-│  │   main.dart     │    │  MaterialApp    │    │  StreamBuilder   │        │
-│  │                 │    │                 │    │                 │        │
-│  │ • Firebase Init │    │ • Theme Config  │    │ • Auth State    │        │
-│  │ • Route Config  │    │ • Navigation    │    │ • Auto Redirect │        │
-│  └─────────────────┘    └─────────────────┘    └─────────────────┘        │
-│           │                       │                       │                │
-│           └───────────────────────┼───────────────────────┘                │
-│                                   │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        SCREENS (lib/screens/)                      │   │
-│  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │   Home      │ │   Login     │ │  Register   │ │  Profile    │   │   │
-│  │ │             │ │             │ │             │ │             │   │   │
-│  │ │ • Dashboard │ │ • Auth      │ │ • Sign Up   │ │ • User Info │   │   │
-│  │ │ • Overview  │ │ • Validation│ │ • Form      │ │ • Settings  │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │Habit Tracker│ │Mood Tracker │ │Smart Remind │ │Water Counter│   │   │
-│  │ │             │ │             │ │             │ │             │   │   │
-│  │ │ • Habits    │ │ • Mood Log  │ │ • Notif     │ │ • Hydration │   │   │
-│  │ │ • Progress  │ │ • Analytics │ │ • Schedule  │ │ • Tracking  │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │Sleep Counter│ │Calorie Count│ │Mini Challenge│ │Trends Report│   │   │
-│  │ │             │ │             │ │             │ │             │   │   │
-│  │ │ • Sleep Log │ │ • Nutrition │ │ • Challenges│ │ • Analytics │   │   │
-│  │ │ • Quality   │ │ • Calories  │ │ • Goals     │ │ • Charts    │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                   │                                        │
-└───────────────────────────────────┼────────────────────────────────────────┘
-                                    │
-┌───────────────────────────────────┼────────────────────────────────────────┐
-│                           BUSINESS LOGIC LAYER                            │
-├───────────────────────────────────┼────────────────────────────────────────┤
-│                                   │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        SERVICES (lib/services/)                    │   │
-│  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │ AuthService │ │HabitService │ │MoodService  │ │ReminderServ │   │   │
-│  │ │             │ │             │ │             │ │             │   │   │
-│  │ │ • Login     │ │ • CRUD      │ │ • Mood Log  │ │ • Schedule  │   │   │
-│  │ │ • Register  │ │ • Progress  │ │ • Analytics │ │ • Notif     │   │   │
-│  │ │ • Logout    │ │ • Stats     │ │ • Trends    │ │ • Triggers  │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                   │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        UTILS (lib/utils/)                          │   │
-│  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │FirestoreUtil│ │DateUtil     │ │ValidationUtil│ │NotificationUtil│   │
-│  │ │             │ │             │ │             │ │             │   │   │
-│  │ │ • DB Ops    │ │ • Format    │ │ • Input     │ │ • Local     │   │   │
-│  │ │ • Queries   │ │ • Parse     │ │ • Validate  │ │ • Push      │   │   │
-│  │ │ • Batch     │ │ • Calculate │ │ • Sanitize  │ │ • Schedule  │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                   │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        MODELS (lib/models/)                        │   │
-│  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │   AppUser   │ │   Habit     │ │   Mood      │ │  Reminder   │   │   │
-│  │ │             │ │             │ │             │ │             │   │   │
-│  │ │ • uid       │ │ • id        │ │ • level     │ │ • id        │   │   │
-│  │ │ • email     │ │ • name      │ │ • comment   │ │ • title     │   │   │
-│  │ │ • name      │ │ • category  │ │ • timestamp │ │ • time      │   │   │
-│  │ │ • createdAt │ │ • createdAt │ │ • userId    │ │ • repeat    │   │   │
-│  │ │ • createdAt │ │ • createdAt │ │ • userId    │ │ • repeat    │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                   │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        FIREBASE INTEGRATION                         │   │
-│  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │Firebase Auth│ │Firestore DB │ │Firebase     │ │Firebase     │   │   │
-│  │ │             │ │             │ │Storage      │ │Functions    │   │   │
-│  │ │ • Login     │ │ • Users     │ │ • Images    │ │ • Backend   │   │   │
-│  │ │ • Register  │ │ • Habits    │ │ • Files     │ │ • Triggers  │   │   │
-│  │ │ • Logout    │ │ • Mood      │ │ • Assets    │ │ • Webhooks  │   │   │
-│  │ │ • State     │ │ • Progress  │ │ • Backups   │ │ • Cron Jobs │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                   │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        LOCAL STORAGE                                 │   │
-│  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │                                                                     │   │
-│  │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐   │   │
-│  │ │Shared Prefs │ │Local DB     │ │Cache        │ │Temp Files   │   │   │
-│  │ │             │ │             │ │             │ │             │   │   │
-│  │ │ • Settings  │ │ • Offline   │ │ • Images    │ │ • Downloads │   │   │
-│  │ │ • Theme     │ │ • Sync      │ │ • Data      │ │ • Exports   │   │   │
-│  │ │ • Language  │ │ • Backup    │ │ • Queries   │ │ • Reports   │   │   │
-│  │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘   │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+## 🏗️ **3-Schichten-Architektur**
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           EXTERNAL INTEGRATIONS                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │ Pedometer   │ │ Notifications│ │ Google Fonts│ │ Fl Charts   │          │
-│  │             │ │             │ │             │ │             │          │
-│  │ • Steps     │ │ • Local     │ │ • Typography│ │ • Analytics │          │
-│  │ • Activity  │ │ • Push      │ │ • Icons     │ │ • Progress  │          │
-│  │ • Health    │ │ • Schedule  │ │ • Styling   │ │ • Trends    │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘          │
-│                                                                             │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │ Image Picker│ │ Permission  │ │ Timezone    │ │ Intl        │          │
-│  │             │ │ Handler     │ │             │ │             │          │
-│  │ • Camera    │ │ • Camera    │ │ • Local     │ │ • Date      │          │
-│  │ • Gallery   │ │ • Storage   │ │ • UTC       │ │ • Number    │          │
-│  │ • Upload    │ │ • Location  │ │ • Format    │ │ • Currency  │          │
-│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘          │
-└─────────────────────────────────────────────────────────────────────────────┘
+Die Lebenshygiene-Anwendung basiert auf einer **modularen 3-Schichten-Architektur**, die eine klare Trennung der Zuständigkeiten gewährleistet und die Wartbarkeit, Skalierbarkeit und Testbarkeit der Anwendung optimiert.
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DATA FLOW                                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  User Action → Screen → Service → Model → Firebase → Response              │
-│       ↑                                                           ↓        │
-│  UI Update ← Widget ← State ← Stream ← Firestore ← Data Change             │
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    AUTHENTICATION FLOW                              │   │
-│  │                                                                     │   │
-│  │  Login/Register → Firebase Auth → User State → Route Redirect      │   │
-│  │       ↑                                    ↓                        │   │
-│  │  UI Update ← StreamBuilder ← Auth State Changes                    │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                    DATA SYNCHRONIZATION                             │   │
-│  │                                                                     │   │
-│  │  Local Action → Firestore Update → Real-time Sync → UI Refresh     │   │
-│  │       ↑                                    ↓                        │   │
-│  │  Offline Cache ← Batch Operations ← Conflict Resolution            │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+### **1. Präsentationsschicht (Presentation Layer)**
+
+Die oberste Schicht ist für die **Benutzeroberfläche und Interaktion** verantwortlich und besteht aus:
+
+#### **Hauptscreens:**
+- **Dashboard Screen**: Zentrale Übersicht mit Gesundheitsmetriken, Fortschrittsanzeigen und Schnellzugriff
+- **Auth Screen**: Benutzerauthentifizierung (Login/Registrierung) mit Firebase Auth
+- **Mood Tracker**: Erweiterte Stimmungsverfolgung mit Journaling und Entspannungsübungen
+- **Challenges Screen**: Mini-Herausforderungen und Gamification-Elemente
+- **Analytics Screen**: Detaillierte Statistiken und Trendanalysen
+- **Habits Screen**: Gewohnheitenverwaltung mit Tracking und Fortschrittsanzeige
+
+#### **Wiederverwendbare Widgets:**
+- **Progress Widget**: Fortschrittsbalken und Prozentanzeigen
+- **Metrics Widget**: Gesundheitsmetriken (Schritte, Wasser, Schlaf, Kalorien)
+
+### **2. Logikschicht (Logic Layer)**
+
+Die mittlere Schicht enthält die **Geschäftslogik und Datenverarbeitung**:
+
+#### **Services:**
+- **Auth Service**: Authentifizierungslogik, Benutzerverwaltung
+- **Habit Service**: Gewohnheitenlogik (CRUD-Operationen, Statistiken)
+- **Report Service**: Berichtsgenerierung und Datenanalyse
+- **Gamification Service**: Badges, Achievements, Streaks
+
+#### **Models:**
+- **User Model**: Benutzerdatenstruktur
+- **Habit Model**: Gewohnheitsdatenstruktur
+- **Report Model**: Berichtsdatenstruktur
+- **Gamification Model**: Spielmechaniken-Datenstruktur
+
+#### **Utils:**
+- **Firestore Utils**: Datenbank-Hilfsfunktionen
+- **Validation Utils**: Eingabevalidierung
+- **Date Utils**: Datums- und Zeitoperationen
+- **Theme Provider**: UI-Personalisierung
+- **Language Provider**: Mehrsprachigkeit
+- **Motivational Quotes**: Zitat-Management
+
+### **3. Datenschicht (Data Layer)**
+
+Die unterste Schicht verwaltet **Datenzugriff und Persistierung**:
+
+#### **Firebase Services:**
+- **Firebase Database (Firestore)**: Cloud-Datenbank für Benutzerdaten, Gewohnheiten, Berichte
+- **Firebase Auth**: Authentifizierung und Benutzerverwaltung
+- **Firebase Storage**: Datei-Speicherung (falls benötigt)
+
+#### **Lokale Daten:**
+- **Shared Preferences**: App-Einstellungen, Theme, Sprache, lokale Cache-Daten
+
+#### **Externe APIs:**
+- **Notification API**: Push-Benachrichtigungen und Erinnerungen
+- **Pedometer API**: Schritte-Tracking über Gerätesensoren
+
+## 🔄 **Kommunikationsfluss**
+
+### **Bidirektionale Kommunikation:**
+- **Präsentation ↔ Logik**: UI-Events triggern Service-Aufrufe, Services aktualisieren UI-State über Provider
+- **Logik ↔ Daten**: Services fordern Daten an, Datenbank liefert Ergebnisse zurück
+- **Real-time Updates**: Firebase sendet automatisch Updates an die UI
+- **State Management**: Provider ermöglicht reaktive UI-Updates bei Datenänderungen
+
+### **Datenfluss:**
+1. **UI-Interaktion** → Service-Aufruf
+2. **Service-Verarbeitung** → Datenbankabfrage/-speicherung
+3. **Datenrückgabe** → UI-Update
+4. **Real-time Updates** → Firebase → UI (bidirektional)
+5. **State Changes** → Provider → UI (reaktiv)
+
+## 🎯 **Architekturvorteile**
+
+### **1. Wartbarkeit**
+- **Klare Trennung**: Jede Schicht hat definierte Verantwortlichkeiten
+- **Modularität**: Einzelne Komponenten können unabhängig aktualisiert werden
+- **Code-Organisation**: Strukturierte Dateiorganisation erleichtert Navigation
+
+### **2. Skalierbarkeit**
+- **Horizontale Skalierung**: Firebase skaliert automatisch
+- **Vertikale Skalierung**: Neue Features können einfach hinzugefügt werden
+- **Service-Erweiterung**: Neue Services können modular integriert werden
+
+### **3. Testbarkeit**
+- **Unit Tests**: Services und Models können isoliert getestet werden
+- **Widget Tests**: UI-Komponenten können unabhängig getestet werden
+- **Integration Tests**: Schichtübergreifende Tests möglich
+
+### **4. Flexibilität**
+- **Backend-Austausch**: Firebase kann durch andere Backends ersetzt werden
+- **UI-Framework**: Flutter ermöglicht Cross-Platform-Entwicklung
+- **State Management**: Provider-Pattern für reaktive UI-Updates
+
+## 🔧 **Technische Implementierung**
+
+### **Frontend (Flutter):**
+- **Material Design 3**: Moderne, konsistente UI
+- **Provider Pattern**: State Management
+- **Custom Widgets**: Wiederverwendbare UI-Komponenten
+- **Animations**: Flüssige Übergänge und Feedback
+
+### **Backend (Firebase):**
+- **Firestore**: NoSQL-Datenbank für flexible Datenspeicherung
+- **Firebase Auth**: Sichere Authentifizierung
+- **Real-time Updates**: Live-Datensynchronisation mit bidirektionaler Kommunikation
+- **Offline-Support**: Lokale Datenspeicherung mit Sync bei Verbindung
+
+### **Lokale Speicherung:**
+- **SharedPreferences**: App-Einstellungen und Cache
+- **Offline-Funktionalität**: Grundlegende Features ohne Internet
+
+## 📊 **Datenmodell**
+
+### **Benutzerdaten:**
+```dart
+User {
+  id: String
+  email: String
+  name: String
+  preferences: Map<String, dynamic>
+  goals: Map<String, dynamic>
+}
 ```
 
-## Légende du Diagramme
+### **Gewohnheitsdaten:**
+```dart
+Habit {
+  id: String
+  userId: String
+  name: String
+  category: String
+  frequency: String
+  completionHistory: List<DateTime>
+  streak: int
+}
+```
 
-### Couches Principales :
-- **PRÉSENTATION LAYER** : Interface utilisateur et navigation
-- **BUSINESS LOGIC LAYER** : Services et logique métier
-- **DATA LAYER** : Modèles de données et persistance
-- **EXTERNAL INTEGRATIONS** : Services tiers et plugins
+### **Tagesdaten:**
+```dart
+DailyData {
+  userId: String
+  date: DateTime
+  steps: int
+  water: double
+  sleep: double
+  calories: int
+  mood: int
+  habits: List<String>
+}
+```
 
-### Composants Clés :
-- **Screens** : Écrans de l'application (16 écrans principaux)
-- **Services** : Logique métier et interactions avec Firebase
-- **Models** : Structure des données utilisateur
-- **Utils** : Fonctions utilitaires et helpers
-- **Firebase** : Backend-as-a-Service (Auth, Firestore, Storage)
+## 🚀 **Zukunftsperspektiven**
 
-### Flux de Données :
-- **Authentication Flow** : Gestion de l'authentification en temps réel
-- **Data Synchronization** : Synchronisation bidirectionnelle avec Firebase
-- **Real-time Updates** : Mise à jour automatique de l'interface
+### **Erweiterte Features:**
+- **Web-Version**: Progressive Web App (PWA)
+- **API-Integrationen**: Apple Health, Google Fit
+- **KI-Features**: Intelligente Empfehlungen
+- **Soziale Features**: Freunde, Challenges, Sharing
 
-Cette architecture modulaire permet une séparation claire des responsabilités, facilite la maintenance et l'évolution de l'application tout en garantissant une expérience utilisateur fluide et réactive. 
+### **Performance-Optimierungen:**
+- **Caching-Strategien**: Intelligente Datenzwischenspeicherung
+- **Lazy Loading**: Bedarfsgesteuerte Datenladung
+- **Background Sync**: Offline-Datensynchronisation
+
+---
+
+*Diese Architektur gewährleistet eine robuste, wartbare und skalierbare Anwendungsstruktur, die den Anforderungen einer modernen Gesundheits-App entspricht.*

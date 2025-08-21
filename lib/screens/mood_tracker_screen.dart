@@ -884,19 +884,6 @@ class _MoodTrackerScreenState extends State<MoodTrackerScreen> with TickerProvid
     );
   }
 
-  String _getAIRecommendation() {
-    final mood = _getCurrentMoodData();
-    final comment = _moodCommentController.text.trim();
-    
-    if (_currentMoodLevel <= 2.0) {
-      return 'Es scheint, als hättest du einen schwierigen Tag. Versuche eine kurze Meditation oder einen Spaziergang an der frischen Luft. Denke daran, dass schwierige Zeiten vorübergehen.';
-    } else if (_currentMoodLevel <= 3.0) {
-      return 'Deine Stimmung ist neutral. Das ist völlig in Ordnung! Vielleicht ist heute ein guter Tag für eine entspannte Aktivität oder um dich auf morgen vorzubereiten.';
-    } else {
-      return 'Du hast eine positive Stimmung! Das ist wunderbar. Nutze diese Energie für Aktivitäten, die dir wichtig sind, oder teile deine gute Laune mit anderen.';
-    }
-  }
-
   void _showMoodAnalytics() {
     showDialog(
       context: context,

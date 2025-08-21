@@ -8,7 +8,7 @@ class AuthService extends ChangeNotifier {
 
   User? get currentUser => _auth.currentUser;
 
-  // Inscription
+  // Registrierung
   Future<User?> signUp(String email, String password, String firstName) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -20,6 +20,7 @@ class AuthService extends ChangeNotifier {
         'firstName': firstName,
         'email': email,
         'createdAt': FieldValue.serverTimestamp(),
+        'profileImageUrl': null,
       });
       
       notifyListeners();
@@ -30,7 +31,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Connexion
+  // Anmeldung
   Future<User?> signIn(String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -45,13 +46,13 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Déconnexion
+  // Abmeldung
   Future<void> signOut() async {
     await _auth.signOut();
     notifyListeners();
   }
 
-  // Mise à jour du prénom
+  // Aktualisierung des Vornamens
   Future<void> updateFirstName(String firstName) async {
     try {
       final user = _auth.currentUser;
@@ -63,6 +64,36 @@ class AuthService extends ChangeNotifier {
       }
     } catch (e) {
       print("Fehler bei der Aktualisierung des Vornamens: $e");
+    }
+  }
+
+  // Aktualisierung der Profilbild-URL
+  Future<void> updateProfileImageUrl(String imageUrl) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'profileImageUrl': imageUrl,
+        });
+        notifyListeners();
+      }
+    } catch (e) {
+      print("Fehler bei der Aktualisierung der Profilbild-URL: $e");
+    }
+  }
+
+  // Profilbild-URL abrufen
+  Future<String?> getProfileImageUrl() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        return doc.data()?['profileImageUrl'];
+      }
+      return null;
+    } catch (e) {
+      print("Fehler beim Abrufen der Profilbild-URL: $e");
+      return null;
     }
   }
 }
