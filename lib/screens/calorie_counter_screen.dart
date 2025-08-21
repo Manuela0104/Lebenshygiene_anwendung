@@ -476,30 +476,50 @@ class _CalorieCounterScreenState extends State<CalorieCounterScreen> with Ticker
             ),
           ),
           SizedBox(height: isTablet ? 25 : 20),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: isTablet ? 4 : 2,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
-            childAspectRatio: isTablet ? 1.8 : 2.2,
-            children: [
-              _buildQuickAddButton('Frühstück', 400, Icons.free_breakfast, const Color(0xFFfee140), isTablet),
-              _buildQuickAddButton('Mittagessen', 600, Icons.lunch_dining, const Color(0xFFfa709a), isTablet),
-              _buildQuickAddButton('Abendessen', 500, Icons.dinner_dining, const Color(0xFF43e97b), isTablet),
-              _buildQuickAddButton('Snack', 150, Icons.cookie, const Color(0xFF4facfe), isTablet),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isSmallScreen = constraints.maxHeight < 600;
+              final isVerySmallScreen = constraints.maxHeight < 500;
+              
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildQuickAddButton('Frühstück', 400, Icons.free_breakfast, const Color(0xFFfee140), isTablet, isSmallScreen, isVerySmallScreen),
+                      ),
+                      SizedBox(width: isSmallScreen ? 10 : 15),
+                      Expanded(
+                        child: _buildQuickAddButton('Mittagessen', 600, Icons.lunch_dining, const Color(0xFFfa709a), isTablet, isSmallScreen, isVerySmallScreen),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: isSmallScreen ? 10 : 15),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildQuickAddButton('Abendessen', 500, Icons.dinner_dining, const Color(0xFF43e97b), isTablet, isSmallScreen, isVerySmallScreen),
+                      ),
+                      SizedBox(width: isSmallScreen ? 10 : 15),
+                      Expanded(
+                        child: _buildQuickAddButton('Snack', 150, Icons.cookie, const Color(0xFF4facfe), isTablet, isSmallScreen, isVerySmallScreen),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuickAddButton(String label, int calories, IconData icon, Color color, bool isTablet) {
+  Widget _buildQuickAddButton(String label, int calories, IconData icon, Color color, bool isTablet, bool isSmallScreen, bool isVerySmallScreen) {
     return GestureDetector(
       onTap: () => _addCalories(calories),
       child: Container(
-        padding: EdgeInsets.all(isTablet ? 16 : 12),
+        padding: EdgeInsets.all(isTablet ? 16 : (isVerySmallScreen ? 6 : (isSmallScreen ? 8 : 12))),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
@@ -513,29 +533,42 @@ class _CalorieCounterScreenState extends State<CalorieCounterScreen> with Ticker
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: isTablet ? 28 : 24),
-            SizedBox(height: isTablet ? 8 : 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: isTablet ? 14 : 12,
-                fontWeight: FontWeight.w600,
+        child: IntrinsicHeight(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon, 
+                color: Colors.white, 
+                size: isTablet ? 28 : (isVerySmallScreen ? 16 : (isSmallScreen ? 20 : 24))
               ),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              '+$calories kcal',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: isTablet ? 12 : 10,
-                fontWeight: FontWeight.w500,
+              SizedBox(height: isTablet ? 8 : (isVerySmallScreen ? 2 : (isSmallScreen ? 4 : 6))),
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isTablet ? 14 : (isVerySmallScreen ? 8 : (isSmallScreen ? 10 : 12)),
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+              SizedBox(height: isTablet ? 4 : (isVerySmallScreen ? 1 : (isSmallScreen ? 2 : 4))),
+              Text(
+                '+$calories kcal',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: isTablet ? 12 : (isVerySmallScreen ? 7 : (isSmallScreen ? 8 : 10)),
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

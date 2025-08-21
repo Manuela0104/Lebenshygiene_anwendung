@@ -348,9 +348,11 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerPr
 
   Widget _buildGoalCard(Map<String, dynamic> goal, bool isTablet) {
     final isSelected = _selectedGoal == goal['id'];
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 600;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 15 : 20),
       child: GestureDetector(
         onTap: () {
           setState(() {
@@ -361,7 +363,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerPr
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          padding: EdgeInsets.all(isTablet ? 30 : 25),
+          padding: EdgeInsets.all(isTablet ? 30 : (isSmallScreen ? 15 : 25)),
           decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(
@@ -403,7 +405,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerPr
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(isTablet ? 16 : 14),
+                    padding: EdgeInsets.all(isTablet ? 16 : (isSmallScreen ? 10 : 14)),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -422,16 +424,16 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerPr
                     ),
                     child: Icon(
                       goal['icon'],
-                      size: isTablet ? 32 : 28,
+                      size: isTablet ? 32 : (isSmallScreen ? 20 : 28),
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isSmallScreen ? 12 : 16),
                   Expanded(
                     child: Text(
                       goal['title'],
                       style: TextStyle(
-                        fontSize: isTablet ? 20 : 18,
+                        fontSize: isTablet ? 20 : (isSmallScreen ? 14 : 18),
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -459,25 +461,28 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerPr
                     ),
                 ],
               ),
-              SizedBox(height: isTablet ? 20 : 16),
+              SizedBox(height: isTablet ? 20 : (isSmallScreen ? 12 : 16)),
               Text(
                 goal['description'],
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
-                  fontSize: isTablet ? 16 : 14,
+                  fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
                   height: 1.4,
                 ),
               ),
-              SizedBox(height: isTablet ? 20 : 16),
+              SizedBox(height: isTablet ? 20 : (isSmallScreen ? 12 : 16)),
               ...(goal['features'] as List<String>).map((feature) => Container(
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: EdgeInsets.only(bottom: isSmallScreen ? 6 : 8),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.only(top: 6, right: 12),
+                      width: isSmallScreen ? 6 : 8,
+                      height: isSmallScreen ? 6 : 8,
+                      margin: EdgeInsets.only(
+                        top: isSmallScreen ? 4 : 6, 
+                        right: isSmallScreen ? 8 : 12
+                      ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [goal['color'], goal['color'].withOpacity(0.7)],
@@ -490,7 +495,7 @@ class _GoalSelectionScreenState extends State<GoalSelectionScreen> with TickerPr
                         feature,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
-                          fontSize: isTablet ? 15 : 13,
+                          fontSize: isTablet ? 15 : (isSmallScreen ? 11 : 13),
                           height: 1.4,
                         ),
                       ),

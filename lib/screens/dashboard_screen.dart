@@ -513,12 +513,14 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
     VoidCallback onTap,
   ) {
     final percentage = (value / goal).clamp(0.0, 1.0);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 600;
     
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 140, // Ajout d'une hauteur fixe pour éviter le débordement
-        padding: const EdgeInsets.all(16),
+        height: isSmallScreen ? 120 : 140, // Hauteur adaptative
+        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(16),
@@ -528,27 +530,33 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           ),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Centrer le contenu
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(
+                icon, 
+                color: color, 
+                size: isSmallScreen ? 20 : 24
+              ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isSmallScreen ? 8 : 12),
             Text(
               label,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.8),
-                fontSize: 12,
+                fontSize: isSmallScreen ? 10 : 12,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isSmallScreen ? 6 : 8),
             Container(
               width: 60,
               height: 6,
@@ -567,15 +575,17 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isSmallScreen ? 6 : 8),
             Text(
               '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)}/$goal $unit',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.6),
-                fontSize: 10,
+                fontSize: isSmallScreen ? 9 : 10,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

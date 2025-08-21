@@ -739,7 +739,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.8,
+            childAspectRatio: 1.5, // Réduit de 1.8 à 1.5 pour éviter l'overflow
             children: [
               _buildGoalItem(
                 'Kalorien',
@@ -808,8 +808,11 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Widget _buildGoalItem(String label, String value, IconData icon, Color color) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 600;
+    
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
@@ -822,32 +825,42 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [color.withOpacity(0.8), color.withOpacity(0.6)],
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(
+              icon, 
+              color: Colors.white, 
+              size: isSmallScreen ? 16 : 20
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
             label,
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
-              fontSize: 12,
+              fontSize: isSmallScreen ? 10 : 12,
               fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: isSmallScreen ? 3 : 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 14,
+              fontSize: isSmallScreen ? 12 : 14,
               fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
