@@ -20,6 +20,10 @@ import 'services/auth_service.dart';
 import 'utils/theme_provider.dart';
 import 'utils/language_provider.dart';
 
+/// Hauptfunktion der Lebenshygiene-Anwendung
+/// 
+/// Initialisiert Firebase, lokale Datumsformatierung
+/// und startet die Hauptanwendung.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -29,6 +33,12 @@ void main() async {
   runApp(MyApp());
 }
 
+/// Hauptanwendungs-Widget mit Provider-Integration
+/// 
+/// Konfiguriert alle Provider (Auth, Theme, Language),
+/// definiert unterstützte Sprachen und lokale Routen.
+/// Bietet eine vollständig konfigurierte MaterialApp
+/// mit mehrsprachiger Unterstützung und Theme-Management.
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -79,6 +89,16 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Authentifizierungs-Wrapper für die Anwendung
+/// 
+/// Überwacht den Authentifizierungsstatus des Benutzers
+/// und leitet entsprechend weiter:
+/// - Zeigt Ladebildschirm während der Authentifizierung
+/// - Leitet angemeldete Benutzer zum Home-Bildschirm weiter
+/// - Leitet nicht angemeldete Benutzer zum Auth-Bildschirm weiter
+/// 
+/// Stellt sicher, dass Benutzer nur auf autorisierte
+/// Bereiche der Anwendung zugreifen können.
 class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

@@ -983,6 +983,17 @@ class _GoalsProgressScreenState extends State<GoalsProgressScreen> with TickerPr
   }
 }
 
+/// Zielbearbeitungs-Dialog für die Anpassung von Gesundheitszielen
+/// 
+/// Bietet Funktionalitäten für:
+/// - Bearbeitung verschiedener Zieltypen (Schritte, Wasser, Schlaf, etc.)
+/// - Dynamische Titel-Generierung basierend auf Zieltyp
+/// - Validierung der Eingabewerte
+/// - Benutzerfreundliche Eingabefelder
+/// - Speichern und Abbrechen-Funktionalität
+/// 
+/// Der Dialog ermöglicht Benutzern die einfache
+/// Anpassung ihrer Gesundheitsziele.
 class _BuildGoalEditDialog extends StatefulWidget {
   final String goalType;
   final double currentValue;
@@ -996,6 +1007,13 @@ class _BuildGoalEditDialog extends StatefulWidget {
   State<_BuildGoalEditDialog> createState() => _BuildGoalEditDialogState();
 }
 
+/// State-Klasse für den Zielbearbeitungs-Dialog
+/// 
+/// Verwaltet Zielbearbeitungsdaten, Eingabevalidierung und UI-Logik.
+/// Implementiert dynamische Titel-Generierung,
+/// Eingabe-Controller-Management und Wert-Validierung.
+/// Bietet eine intuitive Oberfläche für die
+/// Bearbeitung aller Gesundheitsziele.
 class _BuildGoalEditDialogState extends State<_BuildGoalEditDialog> {
   late TextEditingController _controller;
 

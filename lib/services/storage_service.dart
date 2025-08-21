@@ -20,7 +20,7 @@ class StorageService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ImagePicker _picker = ImagePicker();
 
-  // Photo de profil sélectionnée depuis la galerie
+  // Profilbild aus der Galerie auswählen
   Future<File?> pickProfileImage() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -40,7 +40,7 @@ class StorageService {
     }
   }
 
-  // Photo de profil prise avec la caméra
+  // Profilbild mit der Kamera aufnehmen
   Future<File?> takeProfileImage() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -60,36 +60,21 @@ class StorageService {
     }
   }
 
-  // Upload de la photo de profil
+  // Upload des Profilbildes
   Future<String?> uploadProfileImage(File imageFile) async {
     try {
       final user = _auth.currentUser;
-      if (user == null) {
-        throw Exception('Benutzer nicht angemeldet');
-      }
-
-      // Créer une référence unique pour l'image
-      final storageRef = _storage
-          .ref()
-          .child('profile_images')
-          .child('${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-      // Upload du fichier
-      final uploadTask = storageRef.putFile(
-        imageFile,
-        SettableMetadata(
-          contentType: 'image/jpeg',
-          customMetadata: {
-            'uploadedBy': user.uid,
-            'uploadedAt': DateTime.now().toIso8601String(),
-          },
-        ),
-      );
-
-      // Attendre la fin de l'upload
-      final snapshot = await uploadTask;
+      if (user == null) return null;
       
-      // Récupérer l'URL de téléchargement
+      final String fileName = 'profile_${user.uid}.jpg';
+      final Reference ref = _storage.ref().child('profile_images/$fileName');
+      
+      final UploadTask uploadTask = ref.putFile(imageFile);
+      
+      // Auf das Ende des Uploads warten
+      final TaskSnapshot snapshot = await uploadTask;
+      
+      // Download-URL abrufen
       final downloadUrl = await snapshot.ref.getDownloadURL();
       
       print('Bild erfolgreich hochgeladen: $downloadUrl');
@@ -101,7 +86,7 @@ class StorageService {
     }
   }
 
-  // Supprimer une photo de profil
+  // Profilbild löschen
   Future<bool> deleteProfileImage(String imageUrl) async {
     try {
       final user = _auth.currentUser;
@@ -109,7 +94,7 @@ class StorageService {
         throw Exception('Benutzer nicht angemeldet');
       }
 
-      // Extraire le chemin du fichier depuis l'URL
+      // Dateipfad aus der URL extrahieren
       final ref = _storage.refFromURL(imageUrl);
       await ref.delete();
       
@@ -122,7 +107,7 @@ class StorageService {
     }
   }
 
-  // Vérifier si l'utilisateur a une photo de profil
+  // Überprüfen ob der Benutzer ein Profilbild hat
   Future<bool> hasProfileImage() async {
     try {
       final user = _auth.currentUser;

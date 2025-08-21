@@ -138,12 +138,12 @@ class UserProgress {
     return currentPoints >= pointsToNextLevel;
   }
 
-  // Calculer les points nécessaires pour le prochain niveau
+  // Erforderliche Punkte für das nächste Level berechnen
   int get pointsForNextLevel {
     return (100 * math.pow(currentLevel, 1.5)).round();
   }
 
-  // Calculer le pourcentage de progression vers le prochain niveau
+  // Fortschrittsprozentsatz zum nächsten Level berechnen
   double get progressToNextLevel {
     return currentPoints / pointsForNextLevel;
   }
@@ -273,6 +273,17 @@ class Achievement {
   }
 }
 
+/// Punkte-Transaktions-Datenmodell für das Belohnungssystem
+/// 
+/// Definiert die Struktur für:
+/// - Eindeutige Transaktions-Identifikation
+/// - Punkte-Betrag und -Grund für die Transaktion
+/// - Kategorie-Zuordnung für Organisation
+/// - Zeitstempel für Transaktionsverfolgung
+/// - Firestore-Integration für Datensynchronisation
+/// 
+/// Das Modell ermöglicht die detaillierte Verfolgung
+/// aller Punkte-Transaktionen im Gamification-System.
 class PointsTransaction {
   final String id;
   final String userId;
@@ -313,7 +324,18 @@ class PointsTransaction {
   }
 }
 
-// Vordefinierte Badges
+/// Vordefinierte Badge-Definitionen für das Belohnungssystem
+/// 
+/// Bietet eine umfassende Sammlung von:
+/// - Wasser-bezogenen Badges (Anfänger, Experte, Meister)
+/// - Schritte-bezogenen Badges mit verschiedenen Schwierigkeitsgraden
+/// - Schlaf-bezogenen Badges für Schlafqualität
+/// - Stimmungs-bezogenen Badges für mentale Gesundheit
+/// - Gewohnheits-bezogenen Badges für Kontinuität
+/// - Streak-bezogenen Badges für Ausdauer
+/// 
+/// Die Klasse definiert alle verfügbaren Badges
+/// mit spezifischen Anforderungen und Belohnungen.
 class BadgeDefinitions {
   static List<Badge> getAllBadges() {
     return [
@@ -476,7 +498,18 @@ class BadgeDefinitions {
   }
 }
 
-// Vordefinierte Achievements
+/// Vordefinierte Achievement-Definitionen für das Erfolgssystem
+/// 
+/// Bietet eine umfassende Sammlung von:
+/// - Täglichen Achievements für kurzfristige Ziele
+/// - Wöchentlichen Achievements für mittelfristige Erfolge
+/// - Monatlichen Achievements für langfristige Herausforderungen
+/// - Spezielle Achievements für besondere Meilensteine
+/// - Kategorisierte Achievements mit spezifischen Kriterien
+/// - Punktebelohnungen für verschiedene Erfolgsstufen
+/// 
+/// Die Klasse definiert alle verfügbaren Achievements
+/// mit detaillierten Anforderungen und Belohnungen.
 class AchievementDefinitions {
   static List<Achievement> getAllAchievements() {
     return [
@@ -659,7 +692,18 @@ class AchievementDefinitions {
   }
 }
 
-// Configuration des points pour différentes actions
+/// Punkte-Konfiguration für verschiedene Aktionen im Gamification-System
+/// 
+/// Definiert die Punkteverteilung für:
+/// - Grundlegende Aktionen (Gewohnheiten, Streaks, Challenges)
+/// - Zielerreichung (Wasser, Schritte, Schlaf)
+/// - Tägliche Aktivitäten (Stimmungsverfolgung, perfekte Tage)
+/// - Berichtsgenerierung (wöchentlich, monatlich)
+/// - Streak-Boni für kontinuierliche Aktivität
+/// - Kategorie-Multiplikatoren für verschiedene Aktivitätstypen
+/// 
+/// Die Klasse sorgt für ein ausgewogenes und motivierendes
+/// Punkte-System in der gesamten Anwendung.
 class PointsConfig {
   static const Map<String, int> actionPoints = {
     'habit_completed': 10,
@@ -693,67 +737,78 @@ class PointsConfig {
   };
 }
 
-// Configuration des niveaux
+/// Level-Konfiguration für das Gamification-System
+/// 
+/// Definiert die Struktur für:
+/// - Verschiedene Benutzerlevel mit steigenden Anforderungen
+/// - Level-spezifische Titel und Beschreibungen
+/// - Erforderliche Punkte für jeden Level-Aufstieg
+/// - Freigeschaltete Features pro Level
+/// - Fortschrittliche Entsperrung von Funktionen
+/// - Motivierende Level-Beschreibungen
+/// 
+/// Die Klasse strukturiert das Fortschrittssystem
+/// und ermöglicht eine schrittweise Einführung in alle App-Features.
 class LevelConfig {
   static List<Level> get levels => [
     Level(
       level: 1,
-      title: 'Débutant',
-      description: 'Bienvenue dans votre voyage vers une vie plus saine !',
+      title: 'Anfänger',
+      description: 'Willkommen auf Ihrer Reise zu einem gesünderen Leben!',
       requiredPoints: 0,
       unlockedFeatures: ['basic_tracking', 'daily_habits'],
     ),
     Level(
       level: 2,
-      title: 'Motivé',
-      description: 'Vous commencez à prendre de bonnes habitudes !',
+      title: 'Motiviert',
+      description: 'Sie beginnen gute Gewohnheiten zu entwickeln!',
       requiredPoints: 100,
       unlockedFeatures: ['mood_tracking', 'water_tracking'],
     ),
     Level(
       level: 3,
-      title: 'Engagé',
-      description: 'Votre constance est remarquable !',
+      title: 'Engagiert',
+      description: 'Ihre Beständigkeit ist bemerkenswert!',
       requiredPoints: 250,
       unlockedFeatures: ['sleep_tracking', 'step_tracking'],
     ),
     Level(
       level: 4,
-      title: 'Déterminé',
-      description: 'Vous êtes sur la bonne voie !',
+      title: 'Entschlossen',
+      description: 'Sie sind auf dem richtigen Weg!',
       requiredPoints: 500,
       unlockedFeatures: ['challenges', 'weekly_reports'],
     ),
     Level(
       level: 5,
-      title: 'Consistant',
-      description: 'Vos habitudes deviennent naturelles !',
+      title: 'Konsequent',
+      description: 'Ihre Gewohnheiten werden natürlich!',
       requiredPoints: 1000,
       unlockedFeatures: ['predictions', 'advanced_analytics'],
     ),
     Level(
       level: 6,
-      title: 'Expert',
-      description: 'Vous maîtrisez l\'art des bonnes habitudes !',
+      title: 'Experte',
+      description: 'Sie beherrschen die Kunst der guten Gewohnheiten!',
       requiredPoints: 2000,
       unlockedFeatures: ['custom_challenges', 'social_features'],
-      specialReward: 'Badge Expert',
+      specialReward: 'Experten-Badge',
     ),
     Level(
       level: 7,
-      title: 'Maître',
-      description: 'Vous inspirez les autres par votre exemple !',
+      title: 'Meister',
+      description: 'Sie inspirieren andere durch Ihr Beispiel!',
       requiredPoints: 3500,
       unlockedFeatures: ['mentor_mode', 'community_leader'],
-      specialReward: 'Badge Maître',
+      specialReward: 'Meister-Badge',
     ),
     Level(
       level: 8,
-      title: 'Légende',
-      description: 'Vous êtes une légende de la santé et du bien-être !',
+      title: 'Legende',
+      description: 'Sie sind eine Legende der Gesundheit und des Wohlbefindens!',
       requiredPoints: 5000,
       unlockedFeatures: ['all_features', 'exclusive_content'],
-      specialReward: 'Badge Légende',
+      specialReward: 'Legenden-Badge',
     ),
   ];
 } 

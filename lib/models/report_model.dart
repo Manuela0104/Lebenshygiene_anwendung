@@ -60,6 +60,17 @@ class PersonalizedReport {
   }
 }
 
+/// Berichtsmetriken-Datenmodell für detaillierte Gesundheitsdaten
+/// 
+/// Definiert die Struktur für:
+/// - Grundlegende Gesundheitsmetriken (Wasser, Schritte, Schlaf, Kalorien)
+/// - Stimmungs- und Energielevel-Durchschnitte
+/// - Gewohnheits-Erfüllungsraten und -statistiken
+/// - Stresslevel-Überwachung
+/// - Firestore-Integration für Datenserialisierung
+/// 
+/// Das Modell ermöglicht die strukturierte Speicherung
+/// aller wichtigen Gesundheitsdaten für Berichte.
 class ReportMetrics {
   final double waterIntake;
   final double steps;

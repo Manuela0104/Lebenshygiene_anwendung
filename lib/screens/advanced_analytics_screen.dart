@@ -192,7 +192,7 @@ class _AdvancedAnalyticsScreenState extends State<AdvancedAnalyticsScreen>
     );
   }
 
-  // Utilitäten
+      // Hilfsfunktionen
   Color _getTrendColor(String trend) {
     switch (trend.toLowerCase()) {
       case 'excellent':

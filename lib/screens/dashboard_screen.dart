@@ -116,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         .doc(dateStr)
         .get();
     
-    // Réinitialiser les données si c'est un nouveau jour
+    // Daten zurücksetzen wenn es ein neuer Tag ist
     if (!doc.exists && DateFormat('yyyy-MM-dd').format(date) == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
       await FirebaseFirestore.instance
           .collection('users')
@@ -154,7 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
           });
         }
       }
-      // Si la taille est manquante ou null, la charger depuis le profil utilisateur
+              // Wenn die Größe fehlt oder null ist, aus dem Benutzerprofil laden
       if ((data['height'] == null || data['height'] == 0.0)) {
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         if (userDoc.exists) {
@@ -173,7 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
         _sleep = 0.0;
         _kcal = 0;
       });
-      // Charger la taille et le poids depuis le profil utilisateur
+      // Größe und Gewicht aus dem Benutzerprofil laden
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (userDoc.exists) {
         final userData = userDoc.data()!;

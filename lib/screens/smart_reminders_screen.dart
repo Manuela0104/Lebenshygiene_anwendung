@@ -185,7 +185,7 @@ class _SmartRemindersScreenState extends State<SmartRemindersScreen> with Ticker
 
   Future<void> _checkNotificationPermissions() async {
     if (kIsWeb) {
-      // Sur le web, on considère que les notifications sont toujours disponibles
+      // Im Web gehen wir davon aus, dass Benachrichtigungen immer verfügbar sind
       setState(() {
         _hasNotificationPermission = true;
       });

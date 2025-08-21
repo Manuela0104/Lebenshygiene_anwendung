@@ -1109,6 +1109,17 @@ class _EnhancedMoodTrackerScreenState extends State<EnhancedMoodTrackerScreen> w
   }
 }
 
+/// Atemübung-Dialog für geführte Entspannungsübungen
+/// 
+/// Bietet Funktionalitäten für:
+/// - Geführte 4-7-8 Atemübung (60 Sekunden)
+/// - Visuelle Phase-Anzeige (Einatmen, Halten, Ausatmen)
+/// - Countdown-Timer für Übungsdauer
+/// - Animierte Atemvisualisierung
+/// - Callback bei Übungsabschluss
+/// 
+/// Der Dialog bietet eine immersive Atemübung
+/// für Stressabbau und Entspannung.
 class _BreathingExerciseDialog extends StatefulWidget {
   final Animation<double> animation;
   final VoidCallback onComplete;
@@ -1122,6 +1133,13 @@ class _BreathingExerciseDialog extends StatefulWidget {
   State<_BreathingExerciseDialog> createState() => _BreathingExerciseDialogState();
 }
 
+/// State-Klasse für den Atemübung-Dialog
+/// 
+/// Verwaltet Atemübung-Timer, Phasenwechsel und Animationen.
+/// Implementiert Countdown-Logik für 60-Sekunden-Übung,
+/// Phase-basierte Anweisungen und visuelle Rückmeldung.
+/// Bietet eine beruhigende und fokussierte
+/// Atemübungserfahrung.
 class _BreathingExerciseDialogState extends State<_BreathingExerciseDialog> {
   int _countdown = 60; // 60 seconds exercise
   String _phase = 'Einatmen';

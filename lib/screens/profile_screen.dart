@@ -756,7 +756,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.5, // Réduit de 1.8 à 1.5 pour éviter l'overflow
+            childAspectRatio: 1.5, // Reduziert von 1.8 auf 1.5 um Überlauf zu vermeiden
             children: [
               _buildGoalItem(
                 'Kalorien',
@@ -1330,7 +1330,17 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 }
 
-// --- Pages de modification vides ---
+/// Kontobearbeitungs-Bildschirm für die Verwaltung von Kontoeinstellungen
+/// 
+/// Bietet Funktionalitäten für:
+/// - Bearbeitung der E-Mail-Adresse
+/// - Änderung des Geburtsdatums
+/// - Passwort-Reset-Funktionalität
+/// - Integration mit Firebase Auth für Authentifizierung
+/// - Firestore-Integration für Datenpersistierung
+/// 
+/// Der Bildschirm ermöglicht Benutzern die Verwaltung
+/// ihrer grundlegenden Kontoinformationen.
 class KontoEditScreen extends StatefulWidget {
   const KontoEditScreen({super.key});
 
@@ -1338,6 +1348,13 @@ class KontoEditScreen extends StatefulWidget {
   State<KontoEditScreen> createState() => _KontoEditScreenState();
 }
 
+/// State-Klasse für den Kontobearbeitungs-Bildschirm
+/// 
+/// Verwaltet Kontobearbeitungsdaten, Formulareingaben und Validierung.
+/// Implementiert Firebase-Integration für Datenverwaltung,
+/// Datumsauswahl-Funktionalität und Passwort-Reset.
+/// Bietet eine benutzerfreundliche Oberfläche für
+/// alle Kontobearbeitungsfunktionen.
 class _KontoEditScreenState extends State<KontoEditScreen> {
   final _emailController = TextEditingController();
   final _zielController = TextEditingController();
@@ -1713,6 +1730,17 @@ class _KontoEditScreenState extends State<KontoEditScreen> {
   }
 }
 
+/// Benutzerbearbeitungs-Bildschirm für die Verwaltung von persönlichen Daten
+/// 
+/// Bietet Funktionalitäten für:
+/// - Bearbeitung von Vor- und Nachname
+/// - Verwaltung des Standorts
+/// - Anpassung von Körpermaßen (Größe, Gewicht)
+/// - Geschlechtsauswahl
+/// - Integration mit Firebase für Datenpersistierung
+/// 
+/// Der Bildschirm ermöglicht Benutzern die Verwaltung
+/// ihrer persönlichen Profilinformationen.
 class BenutzerEditScreen extends StatefulWidget {
   const BenutzerEditScreen({super.key});
 
@@ -1720,6 +1748,13 @@ class BenutzerEditScreen extends StatefulWidget {
   State<BenutzerEditScreen> createState() => _BenutzerEditScreenState();
 }
 
+/// State-Klasse für den Benutzerbearbeitungs-Bildschirm
+/// 
+/// Verwaltet Benutzerdaten, Formulareingaben und Validierung.
+/// Implementiert Firebase-Integration für Datenverwaltung,
+/// Körpermaß-Eingabe und Geschlechtsauswahl.
+/// Bietet eine intuitive Oberfläche für alle
+/// Benutzerbearbeitungsfunktionen.
 class _BenutzerEditScreenState extends State<BenutzerEditScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();

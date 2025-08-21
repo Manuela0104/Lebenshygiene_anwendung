@@ -119,7 +119,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
       {'name': 'Produktivität', 'icon': Icons.work},
       {'name': 'Persönliche Notizen', 'icon': Icons.edit_note},
     ],
-    // 'Coach Virtuel' : Cette catégorie a été supprimée du tableau de bord et n'est pas utilisée ici.
+            // 'Virtueller Coach' : Diese Kategorie wurde vom Dashboard entfernt und wird hier nicht verwendet.
   };
 
   @override
@@ -177,7 +177,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
   Future<void> _loadStatistics() async {
     if (_user == null) return;
     
-    // Charger les données de la semaine pour l'affichage hebdomadaire
+          // Wochendaten für die wöchentliche Anzeige laden
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     
@@ -198,7 +198,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
         final data = statusSnapshot.data() as Map<String, dynamic>;
         
         data.forEach((habitName, isCompleted) {
-          // Conserver la logique pour les habitudes affichées ici
+          // Logik für hier angezeigte Gewohnheiten beibehalten
           if (isCompleted == true) {
             // Calculs si nécessaire pour l'affichage hebdomadaire
           }
@@ -242,7 +242,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
                 items: _defaultHabits.keys
                     .where((category) =>
                         category != 'Mini-Herausforderungen' &&
-                        category != 'Tendances & Rapports') // Filtrer pour n'afficher que les catégories d'habitudes
+                        category != 'Trends & Berichte') // Filtern um nur Gewohnheits-Kategorien anzuzeigen
                     .map((category) {
                   return DropdownMenuItem(
                     value: category,
@@ -343,7 +343,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
     final List<String> habitTrackerCategories = _defaultHabits.keys
         .where((category) =>
             category != 'Mini-Herausforderungen' &&
-            category != 'Tendances & Rapports' &&
+            category != 'Trends & Berichte' &&
             category != 'Mood Tracker')
         .toList();
 
@@ -533,7 +533,7 @@ class _HabitTrackerScreenState extends State<HabitTrackerScreen> with SingleTick
           _dailyCompletionStatus[habitName] = isCompleted;
         });
       }
-      // Pas besoin de recharger toutes les statistiques ici, juste le statut de complétion
+      // Keine Notwendigkeit alle Statistiken neu zu laden, nur der Erfüllungsstatus
       // await _loadStatistics();
     } catch (e) {
       debugPrint('Error updating completion status: $e');

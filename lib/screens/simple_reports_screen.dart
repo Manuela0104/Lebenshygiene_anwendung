@@ -51,10 +51,10 @@ class _SimpleReportsScreenState extends State<SimpleReportsScreen> {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      // Charger les données de la semaine
+      // Wochendaten laden
       await _loadWeeklyData(user.uid);
       
-      // Charger les données du mois
+      // Monatsdaten laden
       await _loadMonthlyData(user.uid);
       
     } catch (e) {
