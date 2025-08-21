@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../services/auth_service.dart';
+import 'home.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -9,15 +10,14 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateMixin {
+class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  bool _isLoading = false;
   String? _errorMessage;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -27,153 +27,193 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
   @override
   void dispose() {
+    _tabController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _firstNameController.dispose();
-    _lastNameController.dispose();
-    _tabController.dispose();
     super.dispose();
-  }
-
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      if (_tabController.index == 0) {
-        // Login
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-      } else {
-        // Register
-        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-
-        // Save additional user data to Firestore
-        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _errorMessage = e.message;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
-              child: IntrinsicHeight(
+      backgroundColor: const Color(0xFF1a202c),
+      body: SafeArea(
+        child: Consumer<AuthService>(
+          builder: (context, authService, child) {
+            return SingleChildScrollView(
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFF2d3748),
+                      Color(0xFF1a202c),
+                    ],
+                  ),
+                ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    // Header mit Bild
+                    // Header mit Logo
                     Container(
-                      height: 250,
-                      decoration: BoxDecoration(
+                      height: 200,
+                      decoration: const BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.blue.shade700, Colors.blue.shade400],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF4a5568),
+                            Color(0xFF2d3748),
+                          ],
                         ),
-                        borderRadius: const BorderRadius.only(
+                        borderRadius: BorderRadius.only(
                           bottomLeft: Radius.circular(30),
                           bottomRight: Radius.circular(30),
                         ),
                       ),
                       child: Center(
-                        child: Image.asset('assets/images/health.png', height: 150),
-                      ),
-                    ),
-
-                    // Tabs (Anmelden/Registrieren)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                      child: Card(
-                        elevation: 5,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            TabBar(
-                              controller: _tabController,
-                              labelColor: Colors.blue.shade700,
-                              unselectedLabelColor: Colors.grey,
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              indicator: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              tabs: const [
-                                Tab(text: 'Anmelden'),
-                                Tab(text: 'Registrieren'),
-                              ],
-                            ),
-                            if (_errorMessage != null)
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(color: Colors.red),
-                                  textAlign: TextAlign.center,
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color(0xFF8B5CF6), // Violet
+                                    Color(0xFF3B82F6), // Bleu
+                                  ],
                                 ),
-                              ),
-                            SizedBox(                           
-                              height: 300,
-                              child: TabBarView(
-                                controller: _tabController,
-                                children: [
-                                  _buildLoginForm(),
-                                  _buildRegisterForm(),
+                                borderRadius: BorderRadius.circular(50),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                                    blurRadius: 15,
+                                    spreadRadius: 5,
+                                  ),
                                 ],
+                              ),
+                              child: const Icon(
+                                Icons.self_improvement,
+                                size: 60,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'LebensHygiene',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              'Gesund leben, bewusst handeln',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
+
+                    const SizedBox(height: 30),
+
+                    // Login/Register Card
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Card(
+                          elevation: 8,
+                          shadowColor: Colors.black.withOpacity(0.3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          color: const Color(0xFF2d3748),
+                          child: Column(
+                            children: [
+                              // Tabs
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4a5568),
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(20),
+                                    topRight: Radius.circular(20),
+                                  ),
+                                ),
+                                child: TabBar(
+                                  controller: _tabController,
+                                  labelColor: Colors.white,
+                                  unselectedLabelColor: Colors.white70,
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  indicator: BoxDecoration(
+                                    color: const Color(0xFF3182ce),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  tabs: const [
+                                    Tab(
+                                      text: 'Anmelden',
+                                      height: 50,
+                                    ),
+                                    Tab(
+                                      text: 'Registrieren',
+                                      height: 50,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Error Message
+                              if (_errorMessage != null)
+                                Container(
+                                  width: double.infinity,
+                                  margin: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                  ),
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+
+                              // Tab Content
+                              Expanded(
+                                child: TabBarView(
+                                  controller: _tabController,
+                                  children: [
+                                    _buildLoginForm(),
+                                    _buildRegisterForm(),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: 20),
                   ],
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -187,12 +227,25 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           children: [
             TextFormField(
               controller: _emailController,
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 labelText: 'Email',
-                prefixIcon: Icon(Icons.email, color: Colors.blue.shade700),
+                labelStyle: TextStyle(color: Colors.white70),
+                prefixIcon: Icon(Icons.email, color: Colors.white.withOpacity(0.7)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: const Color(0xFF3182ce), width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.05),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -208,13 +261,26 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             const SizedBox(height: 15),
             TextFormField(
               controller: _passwordController,
+              style: const TextStyle(color: Colors.white),
               obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Passwort',
-                prefixIcon: Icon(Icons.lock, color: Colors.blue.shade700),
+                labelStyle: TextStyle(color: Colors.white70),
+                prefixIcon: Icon(Icons.lock, color: Colors.white.withOpacity(0.7)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: const Color(0xFF3182ce), width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.05),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -232,7 +298,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
+                  backgroundColor: Colors.white.withOpacity(0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -240,7 +306,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 onPressed: _isLoading ? null : _submitForm,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Einloggen', style: TextStyle(fontSize: 16)),
+                    : const Text('Einloggen', style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
             ),
           ],
@@ -260,12 +326,25 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             children: [
               TextFormField(
                 controller: _firstNameController,
+                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Vorname',
-                  prefixIcon: Icon(Icons.person, color: Colors.blue.shade700),
+                  labelStyle: TextStyle(color: Colors.white70),
+                  prefixIcon: Icon(Icons.person, color: Colors.white.withOpacity(0.7)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFF3182ce), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -276,30 +355,26 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               ),
               const SizedBox(height: 15),
               TextFormField(
-                controller: _lastNameController,
-                decoration: InputDecoration(
-                  labelText: 'Nachname',
-                  prefixIcon: Icon(Icons.person, color: Colors.blue.shade700),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nachname erforderlich';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
                 controller: _emailController,
+                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  prefixIcon: Icon(Icons.email, color: Colors.blue.shade700),
+                  labelStyle: TextStyle(color: Colors.white70),
+                  prefixIcon: Icon(Icons.email, color: Colors.white.withOpacity(0.7)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFF3182ce), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -315,13 +390,26 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               const SizedBox(height: 15),
               TextFormField(
                 controller: _passwordController,
+                style: const TextStyle(color: Colors.white),
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Passwort',
-                  prefixIcon: Icon(Icons.lock, color: Colors.blue.shade700),
+                  labelStyle: TextStyle(color: Colors.white70),
+                  prefixIcon: Icon(Icons.lock, color: Colors.white.withOpacity(0.7)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFF3182ce), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -339,7 +427,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
+                    backgroundColor: Colors.white.withOpacity(0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -347,14 +435,73 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   onPressed: _isLoading ? null : _submitForm,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Registrieren', style: TextStyle(fontSize: 16)),
+                      : const Text('Registrieren', style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      
+      if (_tabController.index == 0) {
+        // Login
+        final user = await authService.signIn(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+        
+        if (user != null && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Home()),
+          );
+        } else {
+          setState(() {
+            _errorMessage = 'Anmeldung fehlgeschlagen. Überprüfen Sie Ihre Anmeldedaten.';
+          });
+        }
+      } else {
+        // Register
+        final user = await authService.signUp(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+          _firstNameController.text.trim(),
+        );
+        
+        if (user != null && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Home()),
+          );
+        } else {
+          setState(() {
+            _errorMessage = 'Registrierung fehlgeschlagen. Versuchen Sie es erneut.';
+          });
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Ein Fehler ist aufgetreten: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 }
